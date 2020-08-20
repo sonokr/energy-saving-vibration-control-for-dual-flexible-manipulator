@@ -1,6 +1,10 @@
 import time
 
 import numpy as np
+import pandas as pd
+from bokeh.io import output_file, show
+from bokeh.layouts import gridplot
+from bokeh.plotting import figure
 
 # 条件値（いずれ設定ファイルにまとめる）
 dt = 0.002
@@ -13,16 +17,20 @@ Nrk = round(Tend / dt)
 Nte = round(TE / dt)
 
 # リンク1のパラメータ
-ome1 = 12.68
-z1 = 15.49 * 10 ** (-3)
-a1 = 2.266 * 10 ** (-3)
-b1 = 2.004 * 10 ** (-3)
+l1p = {
+    "ome": 12.68,
+    "z": 15.49 * 10 ** (-3),
+    "a": 2.266 * 10 ** (-1),
+    "b": 2.004 * 10 ** (-3),
+}
 
 # リンク2のパラメータ
-ome2 = 10.71
-z2 = 14.27 * 10 ** (-3)
-a2 = 2.570 * 10 ** (-3)
-b2 = 5.822 * 10 ** (-3)
+l2p = {
+    "ome": 10.71,
+    "z": 14.27 * 10 ** (-3),
+    "a": 2.570 * 10 ** (-1),
+    "b": 5.8 * 10 ** (-3),
+}
 
 # トルク関数のパラメータ
 g1 = 2.996 * 10 ** (-2)
@@ -31,53 +39,39 @@ g3 = 5.237 * 10 ** (-2)
 cs = 4.202 * 10 ** (-2)
 
 
-def f(x11, x12, x21, x22, ds, dds):
-    dx11 = x12
-    dx12 = -(2 * z1 * ome1 * x12 + ome1 ** 2 * x11 + a1 * dds * b1 * x11 * ds ** 2)
-    dx21 = x22
-    dx22 = -(2 * z2 * ome2 * x22 + ome2 ** 2 * x21 + a2 * dds + b2 * x21 * ds ** 2)
-
-    k1 = np.array([dx11, dx12]) * dt
-    k2 = np.array([dx21, dx22]) * dt
-
-    return k1, k2
+def f(x1, x2, p, ds, dds):
+    """運動方程式
+    """
+    dx1 = x2
+    dx2 = -(
+        2 * p["z"] * p["ome"] * x2 + (p["ome"] ** 2) * x1 + p["a"] * dds * p["b"] * x1 * (ds ** 2)
+    )
+    return np.array([dx1, dx2]) * dt
 
 
 def RK4(S):
+    """ルンゲクッタ法
+    """
     k1 = np.empty([2, 4])
     k2 = np.empty([2, 4])
     X1 = np.zeros([2, Nrk + 1])
     X2 = np.zeros([2, Nrk + 1])
 
     for i in range(0, Nrk):
-        x11, x12 = X1[:, i]
-        x21, x22 = X2[:, i]
+        x1, x2 = X1[:, i]
+        x3, x4 = X2[:, i]
 
-        k1[:, 0], k2[:, 0] = f(x11, x12, x21, x22, S[2 * i, 1], S[2 * i, 2])
-        k1[:, 1], k2[:, 1] = f(
-            x11 + k1[0, 0] / 2,
-            x12 + k1[1, 0] / 2,
-            x21 + k2[0, 0] / 2,
-            x22 + k2[1, 0] / 2,
-            S[2 * i + 1, 1],
-            S[2 * i + 1, 2],
-        )
-        k1[:, 2], k2[:, 2] = f(
-            x11 + k1[0, 1] / 2,
-            x12 + k1[1, 1] / 2,
-            x21 + k2[0, 1] / 2,
-            x22 + k2[1, 1] / 2,
-            S[2 * i + 1, 1],
-            S[2 * i + 1, 2],
-        )
-        k1[:, 3], k2[:, 3] = f(
-            x11 + k1[0, 2],
-            x12 + k1[1, 2],
-            x21 + k2[0, 2],
-            x22 + k2[1, 2],
-            S[2 * i + 2, 1],
-            S[2 * i + 2, 2],
-        )
+        k1[:, 0] = f(x1, x2, l1p, S[2 * i, 1], S[2 * i, 2])
+        k2[:, 0] = f(x3, x4, l2p, S[2 * i, 1], S[2 * i, 2])
+
+        k1[:, 1] = f(x1 + k1[0, 0] / 2, x2 + k1[1, 0] / 2, l1p, S[2 * i + 1, 1], S[2 * i + 1, 2])
+        k2[:, 1] = f(x3 + k2[0, 0] / 2, x4 + k2[1, 0] / 2, l2p, S[2 * i + 1, 1], S[2 * i + 1, 2])
+
+        k1[:, 2] = f(x1 + k1[0, 1] / 2, x2 + k1[1, 1] / 2, l1p, S[2 * i + 1, 1], S[2 * i + 1, 2])
+        k2[:, 2] = f(x3 + k2[0, 1] / 2, x4 + k2[1, 1] / 2, l2p, S[2 * i + 1, 1], S[2 * i + 1, 2])
+
+        k1[:, 3] = f(x1 + k1[0, 2], x2 + k1[1, 2], l1p, S[2 * i + 2, 1], S[2 * i + 2, 2])
+        k2[:, 3] = f(x3 + k2[0, 2], x4 + k2[1, 2], l2p, S[2 * i + 2, 1], S[2 * i + 2, 2])
 
         X1[:, i + 1] = X1[:, i] + ((k1[:, 0] + 2 * k1[:, 1] + 2 * k1[:, 2] + k1[:, 3]) / 6.0)
         X2[:, i + 1] = X2[:, i] + ((k2[:, 0] + 2 * k2[:, 1] + 2 * k2[:, 2] + k2[:, 3]) / 6.0)
@@ -86,6 +80,8 @@ def RK4(S):
 
 
 def cyc():
+    """サイクロイド軌道
+    """
     S = np.zeros([2 * Nrk + 1, 3])
     t = np.linspace(0.0, TE, 2 * Nte + 1)
 
@@ -106,27 +102,52 @@ if __name__ == "__main__":
     w1 = X1[0, :]
     w2 = X2[0, :]
 
-    ddW1 = (
-        2 * z1 * ome1 * X1[1, :]
-        + ome1 ** 2 * X1[0, :]
-        + a1 * S[0 : 2 * Nrk + 1 : 2, 2]
-        + b1 * X1[0, :] * S[0 : 2 * Nrk + 1 : 2, 1] ** 2
+    ddW1 = -(
+        2 * l1p["z"] * l1p["ome"] * X1[1, :]
+        + l1p["ome"] ** 2 * X1[0, :]
+        + l1p["a"] * S[0 : 2 * Nrk + 1 : 2, 2]
+        + l1p["b"] * X1[0, :] * S[0 : 2 * Nrk + 1 : 2, 1] ** 2
     )
-    ddW2 = (
-        2 * z2 * ome2 * X2[1, :]
-        + ome2 ** 2 * X2[0, :]
-        + a2 * S[0 : 2 * Nrk + 1 : 2, 2]
-        + b2 * X2[0, :] * S[0 : 2 * Nrk + 1 : 2, 1] ** 2
+    ddW2 = -(
+        2 * l2p["z"] * l2p["ome"] * X2[1, :]
+        + l2p["ome"] ** 2 * X2[0, :]
+        + l2p["a"] * S[0 : 2 * Nrk + 1 : 2, 2]
+        + l2p["b"] * X2[0, :] * S[0 : 2 * Nrk + 1 : 2, 1] ** 2
     )
     trq = g1 * S[0 : 2 * Nrk + 1 : 2, 2] + g2 * ddW1 + g3 * ddW2 + cs * S[0 : 2 * Nrk + 1 : 2, 1]
 
-    data = np.empty([Nrk + 1, 7])
-    data[:, 0] = np.linspace(0, Tend, Nrk + 1)
-    data[:, 1:4] = S[0 : 2 * Nrk + 1 : 2, :]
-    data[:, 4] = trq
-    data[:, 5] = w1
-    data[:, 6] = w2
-
-    outdir = "./outputs/"
-    np.savetxt(outdir + "cycloid_data.csv", data, delimiter=",")
     print(f"Elapsed time: {time.time()-start}")
+
+    df = pd.DataFrame(
+        {
+            "t": np.linspace(0, Tend, Nrk + 1),
+            "θ": S[0 : 2 * Nrk + 1 : 2, 0],
+            "dθ": S[0 : 2 * Nrk + 1 : 2, 1],
+            "ddθ": S[0 : 2 * Nrk + 1 : 2, 2],
+            "trq": trq,
+            "w1": w1,
+            "w2": w2,
+        }
+    )
+    df.to_csv("./data/dst/output.csv")
+
+    # Plot Setting
+    output_file("./data/plot/graph.html")
+
+    width, height = 350, 250
+    fig1 = figure(width=width, plot_height=height, title="θ")
+    fig2 = figure(width=width, plot_height=height, title="dθ")
+    fig3 = figure(width=width, plot_height=height, title="ddθ")
+    fig4 = figure(width=width, plot_height=height, title="trq")
+    fig5 = figure(width=width, plot_height=height, title="w1")
+    fig6 = figure(width=width, plot_height=height, title="w2")
+
+    fig1.line(df["t"], df["θ"])
+    fig2.line(df["t"], df["dθ"])
+    fig3.line(df["t"], df["ddθ"])
+    fig4.line(df["t"], df["trq"])
+    fig5.line(df["t"], df["w1"])
+    fig6.line(df["t"], df["w2"])
+
+    fig = gridplot([[fig1, fig4], [fig2, fig5], [fig3, fig6],])
+    show(fig)
