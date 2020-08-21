@@ -10,8 +10,8 @@ from bokeh.plotting import figure
 dt = 0.002
 Tend = 3.0
 
-TE = 1.2  # 駆動時間
-SE = np.pi  # 目標角
+TE = 0.8  # 駆動時間
+SE = np.pi / 2  # 目標角
 
 Nrk = round(Tend / dt)
 Nte = round(TE / dt)
@@ -44,7 +44,7 @@ def f(x1, x2, p, ds, dds):
     """
     dx1 = x2
     dx2 = -(
-        2 * p["z"] * p["ome"] * x2 + (p["ome"] ** 2) * x1 + p["a"] * dds * p["b"] * x1 * (ds ** 2)
+        2 * p["z"] * p["ome"] * x2 + (p["ome"] ** 2) * x1 + p["a"] * dds + p["b"] * x1 * (ds ** 2)
     )
     return np.array([dx1, dx2]) * dt
 
