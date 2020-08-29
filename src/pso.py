@@ -1,3 +1,4 @@
+import argparse
 import copy
 import random
 import time
@@ -10,9 +11,14 @@ from main import RK4, cycloid, torque
 
 
 class PSO:
+    def __init__(self, args):
+        self.particle = args.PARTICLE if args.PARTICLE else 50
+        self.parametor = args.PARAMETOR if args.PARAMETOR else 6
+        self.loop = args.LOOP if args.LOOP else 200
+
     def evaluate(self, a):
         S = cycloid(a)
-        if S[0 : 2 * Nrk + 1 : 2, 2].max() >= 50:
+        if S[0 : 2 * Nrk + 1, 2].max() >= 50:
             return 10 ** 6
 
         X1, X2 = RK4(S)
@@ -29,7 +35,7 @@ class PSO:
             + b2 * X2[0, :] * S[0 : 2 * Nrk + 1 : 2, 1] ** 2
         )
         trq = torque(S, ddW1, ddW2)
-        return np.sum(abs(trq))
+        return sum(np.absolute(trq))
 
     def update_pos(self, a, va):
         return a + va
@@ -40,11 +46,11 @@ class PSO:
         return w_ * (va + p_ * ro1 * (p - a) + p_ * ro2 * (g - a))
 
     def compute(self):
-        print("Initializing variables")
-        parti_count = 100  # 粒子の数 : 100
+        print("Initializing variables\n")
+        parti_count = self.particle  # 粒子の数 : 50
         a_min, a_max = -2.0, 2.0
 
-        param_count = 5
+        param_count = self.parametor
         pos = np.array(
             [
                 [random.uniform(a_min, a_max) for i in range(param_count)]
@@ -59,11 +65,10 @@ class PSO:
         best_parti = np.argmin(p_best_scores)
         g_best_pos = p_best_pos[best_parti]
 
-        loop_count = 200  # 制限時間 : 200
+        loop_count = self.loop
         print("Start calculation")
-        for t in range(loop_count):
-            print("{}/{}".format(t + 1, loop_count))
-            for n in tqdm(range(parti_count)):
+        for t in tqdm(range(loop_count)):
+            for n in range(parti_count):
                 # n番目のx, y, vx, vyを定義
                 a = pos[n]
                 va = vel[n]
@@ -87,7 +92,10 @@ class PSO:
             best_parti = np.argmin(p_best_scores)
             g_best_pos = p_best_pos[best_parti]
 
-        print(f"係数: {g_best_pos}")
+            # print(f"param: {g_best_pos}")
+            # print(f"score: {np.min(p_best_scores)}\n")
+
+        print(f"\ng_best_pos: {g_best_pos}\n")
 
         return g_best_pos
 
@@ -95,7 +103,13 @@ class PSO:
 if __name__ == "__main__":
     start = time.time()
 
-    optim = PSO()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--PARTICLE")
+    parser.add_argument("--PARAMETOR")
+    parser.add_argument("--LOOP")
+    args = parser.parse_args()
+
+    optim = PSO(args)
     res = optim.compute()
     np.savetxt("./data/dst/pso_param.csv", res, delimiter=",")
 

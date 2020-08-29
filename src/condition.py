@@ -5,7 +5,7 @@ dt = 0.002
 Tend = 3.0
 
 TE = 0.8  # 駆動時間
-SE = np.pi / 2  # 目標角
+SE = np.pi / 4  # 目標角
 
 Nrk = round(Tend / dt)
 Nte = round(TE / dt)
