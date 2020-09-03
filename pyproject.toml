@@ -13,6 +13,8 @@ bokeh = "^2.1.1"
 pandas = "^1.1.0"
 cython = "^0.29.21"
 tqdm = "^4.48.2"
+numba = "^0.51.1"
+joblib = "^0.16.0"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
