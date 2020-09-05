@@ -1,7 +1,5 @@
 import copy
 import random
-import time
-from multiprocessing import Pool
 
 import numpy as np
 from tqdm import tqdm
@@ -15,11 +13,13 @@ from traj import cycloid
 class PSO:
     def __init__(self, v):
         self.parti_count = 50
-        self.param_count = 4
+        self.param_count = 6
         self.loop = 200
         self.v = v
 
     def evaluate(self, a):
+        """評価関数
+        """
         S = cycloid(a, self.v)
         if S[0 : 2 * Nrk + 1, 2].max() >= 50:
             return 10 ** 6
@@ -28,40 +28,40 @@ class PSO:
         trq = torque(S, X1, X2)
         return sum(np.absolute(trq))
 
-    def update_pos(self, a, va):
-        new_a = a + va
-        for i in range(int(len(new_a) / 2)):
-            if new_a[i] > 0.2:
-                new_a[i] = 0.2
-            elif new_a[i] < -0.2:
-                new_a[i] = -0.2
-        for i in range(int(len(new_a) / 2), len(new_a)):
-            if new_a[i] > 1:
-                new_a[i] = 1
-            elif new_a[i] < 0:
-                new_a[i] = 0
+    def init_pos(self):
+        """PSOの位置を初期化
+        """
+        return np.array(
+            [
+                [random.uniform(a_min, a_max) for i in range(self.param_count)]
+                for j in range(self.parti_count)
+            ]
+        )
 
+    def update_pos(self, a, va):
+        """位置をアップデート
+        """
+        new_a = a + va
+        for i in range(len(new_a)):
+            if new_a[i] > 2.0:
+                new_a[i] = 2.0
+            elif new_a[i] < -2.0:
+                new_a[i] = -2.0
         return new_a
 
     def update_vel(self, a, va, p, g, w_=0.730, p_=2.05):
+        """速度をアップデート
+        """
         ro1 = random.uniform(0, 1)
         ro2 = random.uniform(0, 1)
         return w_ * (va + p_ * ro1 * (p - a) + p_ * ro2 * (g - a))
 
     def compute(self, _):
+        """PSOを計算
+        """
         print("Initializing variables\n")
 
-        pos = np.array(
-            [
-                [
-                    random.uniform(-0.2, 0.2),
-                    random.uniform(-0.2, 0.2),
-                    random.uniform(0, 1),
-                    random.uniform(0, 1),
-                ]
-                for j in range(self.parti_count)
-            ]
-        )
+        pos = self.init_pos()
         vel = np.array([[0.0 for i in range(self.param_count)] for j in range(self.parti_count)])
 
         p_best_pos = copy.deepcopy(pos)
@@ -104,24 +104,45 @@ class PSO:
         return g_best_pos
 
 
-if __name__ == "__main__":
-    start = time.time()
+class PSO_POWER(PSO):
+    pass
 
-    TE_ = 0.8
-    SE_ = 45
-    mode = "gauss_n2"
 
-    optim = PSO()
+class PSO_GAUSS(PSO):
+    def __init__(self, v):
+        self.parti_count = 50
+        self.param_count = 4
+        self.loop = 200
+        self.v = v
 
-    # results = [optim.compute(1)]
+    def init_pos(self):
+        """PSOの位置を初期化
+        """
+        return np.array(
+            [
+                [
+                    random.uniform(-0.2, 0.2),
+                    random.uniform(-0.2, 0.2),
+                    random.uniform(0, 1),
+                    random.uniform(0, 1),
+                ]
+                for j in range(self.parti_count)
+            ]
+        )
 
-    p = Pool(4)
-    results = p.map(optim.compute, range(4))
-    print(results)
+    def update_pos(self, a, va):
+        """位置をアップデート
+        """
+        new_a = a + va
+        for i in range(int(len(new_a) / 2)):
+            if new_a[i] > 0.2:
+                new_a[i] = 0.2
+            elif new_a[i] < -0.2:
+                new_a[i] = -0.2
+        for i in range(int(len(new_a) / 2), len(new_a)):
+            if new_a[i] > 1:
+                new_a[i] = 1
+            elif new_a[i] < 0:
+                new_a[i] = 0
 
-    savedir = f"./data/te{TE_}_se{SE_}/{mode}/param/"
-    for i, res in enumerate(results):
-        np.savetxt(savedir + f"{i}_param_pso_{mode}_te{TE_}_se{SE_}.csv", res, delimiter=",")
-
-    elapsed_time = time.time() - start
-    print(f"Elapsed Time : {elapsed_time} [sec]")
+        return new_a
