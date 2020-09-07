@@ -14,8 +14,6 @@ from traj import cycloid
 
 
 def train(v, process):
-    v["datadir"] = f"data/te{v['TE']}_se{v['SE']}/{v['mode']}/"
-
     if v["mode"] == "power":
         optim = PSO_POWER(v)
     elif v["mode"] == "gauss_n2":
@@ -44,8 +42,6 @@ def train(v, process):
 def test(v, process):
     """学習したパラメーターからテストを実行
     """
-    v["datadir"] = f"data/te{v['TE']}_se{v['SE']}/{v['mode']}/"
-
     count = 1 if process == "single" else 10
 
     sum_energy = 0
@@ -58,7 +54,7 @@ def test(v, process):
             a = np.array([float(row[0]) for row in reader])
 
         print(f'{i}. Parameter{i} loaded from \n    "{param_path}"!')
-        print(f"    a: {a}")
+        print(f"    param: {a}")
 
         S = cycloid(a, v)
 
@@ -104,6 +100,9 @@ if __name__ == "__main__":
         "SE": str(int(np.rad2deg(SE))),
         "isShow": bool(args.plot) if args.plot else False,
     }
+    v["datadir"] = f"data/te{v['TE']}_se{v['SE']}/{v['mode']}/"
+    # v["datadir"] = "data/exp/"  # パラメータ同定実験用
+
     if args.mode == "train":
         print("#####################")
         print("#   Train Running   #")
