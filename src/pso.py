@@ -31,6 +31,8 @@ class PSO:
     def init_pos(self):
         """PSOの位置を初期化
         """
+        a_min = -2.0
+        a_max = 2.0
         return np.array(
             [
                 [random.uniform(a_min, a_max) for i in range(self.param_count)]
