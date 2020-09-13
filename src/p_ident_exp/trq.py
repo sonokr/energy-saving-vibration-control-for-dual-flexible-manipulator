@@ -24,18 +24,18 @@ Nte = round(TE / dt)
 with open("./data/p_ident_exp/w1/param/0_param.csv") as file:
     reader = csv.reader(file)
     a1_ = np.array([float(row[0]) for row in reader])
-ome1 = 12.69 * np.float64(a1_[0])
-z1 = 1.546 * 10.0 ** -2.0 * np.float64(a1_[1])
-a1 = 2.268 * 10.0 ** -1.0 * np.float64(a1_[2])
-b1 = 3.747 * 10.0 ** -3.0 * np.float64(a1_[3])
+ome1 = 12.68 * np.float64(a1_[0])
+z1 = 15.49 * 10.0 ** -3 * np.float64(a1_[1])
+a1 = 2.266 * 10.0 ** -1 * np.float64(a1_[2])
+b1 = 2.004 * 10.0 ** -3 * np.float64(a1_[3])
 
 with open("./data/p_ident_exp/w2/param/0_param.csv") as file:
     reader = csv.reader(file)
     a2_ = np.array([float(row[0]) for row in reader])
-ome2 = 12.69 * np.float64(a2_[0])
-z2 = 1.546 * 10.0 ** -2.0 * np.float64(a2_[1])
-a2 = 2.268 * 10.0 ** -1.0 * np.float64(a2_[2])
-b2 = 3.747 * 10.0 ** -3.0 * np.float64(a2_[3])
+ome2 = 10.71 * np.float64(a2_[0])
+z2 = 14.27 * 10.0 ** -3 * np.float64(a2_[1])
+a2 = 2.570 * 10.0 ** -1 * np.float64(a2_[2])
+b2 = 5.822 * 10.0 ** -3 * np.float64(a2_[3])
 
 
 @njit("Tuple((f8[:], f8[:]))(f8, f8, f8, f8, f8, f8)")
@@ -151,10 +151,10 @@ def cycloid():
 def torque(S, X1, X2, a):
     """トルクを計算する
     """
-    g1 = 2.986 * 10 ** -2 * a[0]
-    g2 = 6.736 * 10 ** -2 * a[1]
-    g3 = 5.345 * 10 ** -2 * a[2]
-    cs = 4.189 * 10 ** -2 * a[3]
+    g1 = 2.996 * 10 ** -2 * a[0]
+    g2 = 6.652 * 10 ** -2 * a[1]
+    g3 = 5.237 * 10 ** -2 * a[2]
+    cs = 4.202 * 10 ** -2 * a[3]
 
     ddW1 = -(
         2 * z1 * ome1 * X1[1, :]

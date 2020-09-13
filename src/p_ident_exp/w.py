@@ -25,10 +25,10 @@ Nte = round(TE / dt)
 def f(x11, x12, ds, dds, a_):
     """運動方程式
     """
-    ome = 12.69 * np.float64(a_[0])
-    z = 1.546 * 10.0 ** -2.0 * np.float64(a_[1])
-    a = 2.268 * 10.0 ** -1.0 * np.float64(a_[2])
-    b = 3.747 * 10.0 ** -3.0 * np.float64(a_[3])
+    ome = 10.71 * np.float64(a_[0])
+    z = 14.27 * 10.0 ** -3 * np.float64(a_[1])
+    a = 2.570 * 10.0 ** -1 * np.float64(a_[2])
+    b = 5.822 * 10.0 ** -3 * np.float64(a_[3])
 
     dx11 = x12
     dx12 = -(2 * z * ome * x12 + ome ** 2 * x11 + a * dds + b * x11 * ds ** 2)
