@@ -3,6 +3,7 @@ import csv
 import time
 from multiprocessing import Pool
 
+import numpy as np
 import pandas as pd
 
 from cond import *
@@ -44,7 +45,7 @@ def test(v, process):
     """
     count = 1 if process == "single" else 10
 
-    sum_energy = 0
+    energys = {}
     for i in range(count):
         v["i"] = i
 
@@ -77,12 +78,15 @@ def test(v, process):
         )
         df.to_csv(v["datadir"] + f"output/{i}_output_pso_{v['mode']}_te{v['TE']}_se{v['SE']}.csv")
 
-        sum_energy += energy(df["trq"], df["θ"])
+        energys[i] = energy(df["trq"], df["θ"])
         print(f'    {i}_ene: {energy(df["trq"], df["θ"])}\n')
 
         plot_graph(df, v)
 
-    print(f"Average of energy: {sum_energy / count}\n")
+    print("energy")
+    for k, v in sorted(energys.items(), key=lambda x: x[1]):
+        print(k, v)
+    print(f"mean {sum(energys.values()) / len(energys.values())}")
 
 
 if __name__ == "__main__":
@@ -91,17 +95,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", help="Train or Test.")
     parser.add_argument("process", help="Single or Parallel.")
-    parser.add_argument("--plot", help="Plot the graph or not.")
+    parser.add_argument("--plot", help="Plot graph or not.")
     args = parser.parse_args()
 
     v = {
-        "mode": "gauss_n2",
+        "mode": "power",
         "TE": str(TE),
         "SE": str(int(np.rad2deg(SE))),
         "isShow": bool(args.plot) if args.plot else False,
     }
-    v["datadir"] = f"data/te{v['TE']}_se{v['SE']}/{v['mode']}/"
-    # v["datadir"] = "data/exp/"  # パラメータ同定実験用
+
+    v["param_count"] = 7 if v["mode"] == "power" else 4
+    # v["datadir"] = f"data/te{v['TE']}_se{v['SE']}/{v['mode']}/"
+    v["datadir"] = f"data/2020-10-05/te{v['TE']}_se{v['SE']}/{v['param_count']}/"
 
     if args.mode == "train":
         print("#####################")
