@@ -13,7 +13,7 @@ from traj import cycloid
 class PSO:
     def __init__(self, v):
         self.parti_count = 50
-        self.param_count = 6
+        self.param_count = v["param_count"]
         self.loop = 200
         self.v = v
 
@@ -21,7 +21,7 @@ class PSO:
         """評価関数
         """
         S = cycloid(a, self.v)
-        if S[0 : 2 * Nrk + 1, 2].max() >= 50:
+        if np.abs(S[0 : 2 * Nrk + 1, 2]).max() >= 45:
             return 10 ** 6
 
         X1, X2 = RK4(S)
@@ -29,27 +29,10 @@ class PSO:
         return sum(np.absolute(trq))
 
     def init_pos(self):
-        """PSOの位置を初期化
-        """
-        a_min = -2.0
-        a_max = 2.0
-        return np.array(
-            [
-                [random.uniform(a_min, a_max) for i in range(self.param_count)]
-                for j in range(self.parti_count)
-            ]
-        )
+        raise NotImplementedError()
 
     def update_pos(self, a, va):
-        """位置をアップデート
-        """
-        new_a = a + va
-        for i in range(len(new_a)):
-            if new_a[i] > 2.0:
-                new_a[i] = 2.0
-            elif new_a[i] < -2.0:
-                new_a[i] = -2.0
-        return new_a
+        raise NotImplementedError()
 
     def update_vel(self, a, va, p, g, w_=0.730, p_=2.05):
         """速度をアップデート
@@ -98,8 +81,8 @@ class PSO:
             best_parti = np.argmin(p_best_scores)
             g_best_pos = p_best_pos[best_parti]
 
-            print(f"param: {g_best_pos}")
-            print(f"score: {np.min(p_best_scores)}\n")
+            # print(f"param: {g_best_pos}")
+            # print(f"score: {np.min(p_best_scores)}\n")
 
         print(f"\ng_best_pos: {g_best_pos}\n")
 
@@ -107,13 +90,40 @@ class PSO:
 
 
 class PSO_POWER(PSO):
-    pass
+    def __init__(self, v):
+        self.parti_count = 50
+        self.param_count = v["param_count"]
+        self.loop = 200
+        self.v = v
+
+    def init_pos(self):
+        """PSOの位置を初期化
+        """
+        a_min = -2.0
+        a_max = 2.0
+        return np.array(
+            [
+                [random.uniform(a_min, a_max) for i in range(self.param_count)]
+                for j in range(self.parti_count)
+            ]
+        )
+
+    def update_pos(self, a, va):
+        """位置をアップデート
+        """
+        new_a = a + va
+        for i in range(len(new_a)):
+            if new_a[i] > 2.0:
+                new_a[i] = 2.0
+            elif new_a[i] < -2.0:
+                new_a[i] = -2.0
+        return new_a
 
 
 class PSO_GAUSS(PSO):
     def __init__(self, v):
         self.parti_count = 50
-        self.param_count = 4
+        self.param_count = v["param_count"]
         self.loop = 200
         self.v = v
 
