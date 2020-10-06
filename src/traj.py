@@ -16,11 +16,30 @@ def cycloid(a, v):
 def power(a):
     S = np.zeros((2 * Nrk + 1, 3))
     t = np.linspace(0.0, TE, 2 * Nte + 1)
+
     T = -1 + 2 * t / TE
+    dT = 2 / TE
+
+    # u = t / TE + (1 - T ** 2) ** 2 * sum([a[n] * T ** n for n in range(len(a))])
+    # du = np.gradient(u, TE / (2 * Nte + 1))
+    # ddu = np.gradient(du, TE / (2 * Nte + 1))
 
     u = t / TE + (1 - T ** 2) ** 2 * sum([a[n] * T ** n for n in range(len(a))])
-    du = np.gradient(u, TE / (2 * Nte + 1))
-    ddu = np.gradient(du, TE / (2 * Nte + 1))
+    du = (
+        (1 / TE)
+        - 4 * T * (1 - T ** 2) * sum([a[n] * T ** n for n in range(len(a))]) * dT
+        + (1 - T ** 2) ** 2 * sum([n * a[n] * dT * T ** (n - 1) for n in range(1, len(a))])
+    )
+    ddu = (
+        2
+        * (-4 * T * (1 - T ** 2) * dT)
+        * sum([n * a[n] * dT * T ** (n - 1) for n in range(1, len(a))])
+        + sum([a[n] * T ** n for n in range(len(a))]) * 4 * ((-1 + 3 * T ** 2) * dT ** 2)
+        + (1 - T ** 2) ** 2
+        * 2
+        * sum([3 * n * a[n + 2] * T ** (n) for n in range(len(a) - 2)])
+        * dT ** 2
+    )
 
     S[: 2 * Nte + 1, 0] = SE * (u - np.sin(2 * np.pi * t / TE) / 2 / np.pi)
     S[: 2 * Nte + 1, 1] = SE * (du - np.cos(2 * np.pi * u) * du)
