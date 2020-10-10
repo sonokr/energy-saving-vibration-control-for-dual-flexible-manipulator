@@ -12,6 +12,7 @@ from eval import energy, torque
 from pso import PSO_GAUSS, PSO_POWER
 from rk4 import RK4
 from traj import cycloid
+from utils import create_dirs
 
 
 def train(v, process):
@@ -25,8 +26,13 @@ def train(v, process):
     elif process == "parallel":
         p = Pool(4)
         results = p.map(optim.compute, range(10))
+    else:
+        print("実行回数を適切に指定して!")
+        print(f"{process}")
+        exit()
 
     for i, res in enumerate(results):
+        create_dirs(v["datadir"] + "param/")
         np.savetxt(
             v["datadir"] + f"param/{i}_param_pso_{v['mode']}_te{v['TE']}_se{v['SE']}.csv",
             res,
@@ -76,6 +82,7 @@ def test(v, process):
                 "w2": w2,
             }
         )
+        create_dirs(v["datadir"] + "output/")
         df.to_csv(v["datadir"] + f"output/{i}_output_pso_{v['mode']}_te{v['TE']}_se{v['SE']}.csv")
 
         energys[i] = energy(df["trq"], df["θ"])

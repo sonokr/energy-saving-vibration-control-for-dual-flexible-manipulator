@@ -2,8 +2,11 @@ from bokeh.io import output_file, show
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure
 
+from utils import create_dirs
+
 
 def plot_graph(df, v):
+    create_dirs(v["datadir"] + "plot/")
     output_file(v["datadir"] + f"plot/{v['i']}_plot_pso_{v['mode']}_te{v['TE']}_se{v['SE']}.html")
 
     width, height = 350, 250
