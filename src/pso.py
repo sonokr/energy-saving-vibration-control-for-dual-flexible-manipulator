@@ -47,7 +47,7 @@ class PSO:
         print("Initializing variables\n")
 
         pos = self.init_pos()
-        vel = np.array([[0.0 for i in range(self.param_count)] for j in range(self.parti_count)])
+        vel = np.zeros((self.parti_count, self.param_count))
 
         p_best_pos = copy.deepcopy(pos)
         p_best_scores = [self.evaluate(p) for p in pos]
@@ -94,33 +94,30 @@ class PSO_POWER(PSO):
         self.parti_count = 50
         self.param_count = v["param_count"]
         self.loop = 200
+
+        self.a_min = -2.0
+        self.a_max = 2.0
+
         self.v = v
 
     def init_pos(self):
         """PSOの位置を初期化
         """
-        a_min = -2.0
-        a_max = 2.0
-        return np.array(
-            [
-                [random.uniform(a_min, a_max) for i in range(self.param_count)]
-                for j in range(self.parti_count)
-            ]
+        return (
+            np.random.rand(self.parti_count, self.param_count) * (self.a_max - self.a_min)
+            + self.a_min
         )
 
     def update_pos(self, a, va):
         """位置をアップデート
         """
         new_a = a + va
-        for i in range(len(new_a)):
-            if new_a[i] > 2.0:
-                new_a[i] = 2.0
-            elif new_a[i] < -2.0:
-                new_a[i] = -2.0
+        new_a = np.where(new_a < self.a_min, self.a_min, new_a)
+        new_a = np.where(new_a > self.a_max, self.a_max, new_a)
         return new_a
 
 
-class PSO_GAUSS(PSO):
+class PSO_GAUSS4(PSO):
     def __init__(self, v):
         self.parti_count = 50
         self.param_count = v["param_count"]
@@ -156,5 +153,55 @@ class PSO_GAUSS(PSO):
                 new_a[i] = 1
             elif new_a[i] < 0:
                 new_a[i] = 0
+
+        return new_a
+
+
+class PSO_GAUSS6(PSO):
+    def __init__(self, v):
+        self.parti_count = 50
+        self.param_count = v["param_count"]
+        self.loop = 200
+        self.v = v
+
+    def init_pos(self):
+        """PSOの位置を初期化
+        """
+        return np.array(
+            [
+                [
+                    random.uniform(-0.2, 0.2),
+                    random.uniform(-0.2, 0.2),
+                    random.uniform(0, 1),
+                    random.uniform(0, 1),
+                    random.uniform(-0.5, -2.0),
+                    random.uniform(0.5, 2.0),
+                ]
+                for j in range(self.parti_count)
+            ]
+        )
+
+    def update_pos(self, a, va):
+        """位置をアップデート
+        """
+        new_a = a + va
+        for i in range(0, 2):
+            if new_a[i] > 0.2:
+                new_a[i] = 0.2
+            elif new_a[i] < -0.2:
+                new_a[i] = -0.2
+        for i in range(2, 4):
+            if new_a[i] > 1:
+                new_a[i] = 1
+            elif new_a[i] < 0:
+                new_a[i] = 0
+        if new_a[4] > -0.5:
+            new_a[4] = -0.5
+        elif new_a[4] < -2.0:
+            new_a[4] = -2.0
+        if new_a[5] > 2.0:
+            new_a[5] = 2.0
+        elif new_a[5] < 0.5:
+            new_a[5] = 0.5
 
         return new_a
