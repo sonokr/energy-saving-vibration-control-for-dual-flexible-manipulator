@@ -9,7 +9,7 @@ import pandas as pd
 from cond import *
 from data import plot_graph
 from eval import energy, torque
-from pso import PSO_GAUSS, PSO_POWER
+from pso import PSO_GAUSS4, PSO_GAUSS6, PSO_POWER
 from rk4 import RK4
 from traj import cycloid
 from utils import create_dirs
@@ -18,8 +18,10 @@ from utils import create_dirs
 def train(v, process):
     if v["mode"] == "power":
         optim = PSO_POWER(v)
-    elif v["mode"] == "gauss_n2":
-        optim = PSO_GAUSS(v)
+    elif v["mode"] == "gauss_n4":
+        optim = PSO_GAUSS4(v)
+    elif v["mode"] == "gauss_n6":
+        optim = PSO_GAUSS6(v)
 
     if process == "single":
         results = [optim.compute(0)]
@@ -106,15 +108,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     v = {
-        "mode": "power",
+        "mode": "gauss_n6",
         "TE": str(TE),
         "SE": str(int(np.rad2deg(SE))),
         "isShow": bool(args.plot) if args.plot else False,
     }
-
-    v["param_count"] = 7 if v["mode"] == "power" else 4
-    # v["datadir"] = f"data/te{v['TE']}_se{v['SE']}/{v['mode']}/"
-    v["datadir"] = f"data/2020-10-05/te{v['TE']}_se{v['SE']}/{v['param_count']}/"
+    v["datadir"] = f"data/2020-10-12/te{v['TE']}/se{v['SE']}/{v['mode']}/"
+    if v["mode"] == "power":
+        v["param_count"] = 4
+        v["datadir"] += f"{v['param_count']}/"  # パラメータの数も記録する
+    elif v["mode"] == "gauss_n4":
+        v["param_count"] = 4
+    elif v["mode"] == "gauss_n6":
+        v["param_count"] = 6
+    else:
+        print(f"軌道生成法を正しく入力してください.\n{v['mode']}")
+        exit()
 
     if args.mode == "train":
         print("#####################")
