@@ -13,35 +13,118 @@ def cycloid(a, v):
         return gauss_n6(a)
 
 
+@njit("f8[:,:](f8[:])")
 def power(a):
+    a = np.array(list(a) + [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     S = np.zeros((2 * Nrk + 1, 3))
     t = np.linspace(0.0, TE, 2 * Nte + 1)
-
-    T = -1 + 2 * t / TE
-    dT = 2 / TE
-
-    u = t / TE + (1 - T ** 2) ** 2 * sum([a[n] * T ** n for n in range(len(a))])
-    du = (
-        (1 / TE)
-        - 4 * T * (1 - T ** 2) * sum([a[n] * T ** n for n in range(len(a))]) * dT
-        + (1 - T ** 2) ** 2 * sum([n * a[n] * dT * T ** (n - 1) for n in range(1, len(a))])
-    )
-    ddu = (
-        2
-        * (-4 * T * (1 - T ** 2) * dT)
-        * sum([n * a[n] * dT * T ** (n - 1) for n in range(1, len(a))])
-        + sum([a[n] * T ** n for n in range(len(a))]) * 4 * ((-1 + 3 * T ** 2) * dT ** 2)
-        + (1 - T ** 2) ** 2
-        * 2
-        * sum([3 * n * a[n + 2] * T ** (n) for n in range(len(a) - 2)])
-        * dT ** 2
-    )
-
-    S[: 2 * Nte + 1, 0] = SE * (u - np.sin(2 * np.pi * t / TE) / 2 / np.pi)
-    S[: 2 * Nte + 1, 1] = SE * (du - np.cos(2 * np.pi * u) * du)
-    S[: 2 * Nte + 1, 2] = SE * (
-        ddu - np.cos(2 * np.pi * u) * ddu + 2 * np.pi * np.sin(2 * np.pi * u) * du ** 2
-    )
+    dX = 2.0 / TE
+    for i in range(0, 2 * Nte + 1):
+        X = -1 + 2 * t[i] / TE
+        y = t[i] / TE + (1 - X ** 2) ** 2 * (
+            a[0]
+            + a[1] * X
+            + a[2] * X ** 2
+            + a[3] * X ** 3
+            + a[4] * X ** 4
+            + a[5] * X ** 5
+            + a[6] * X ** 6
+            + a[7] * X ** 7
+            + a[8] * X ** 8
+            + a[9] * X ** 9
+            + a[10] * X ** 10
+        )
+        #
+        dy = 1 / TE - (
+            (1 - X ** 2)
+            * (
+                -a[1]
+                + X
+                * (
+                    4 * a[0]
+                    - 2 * a[2]
+                    + X
+                    * (
+                        5 * a[1]
+                        - 3 * a[3]
+                        + X
+                        * (
+                            6 * a[2]
+                            - 4 * a[4]
+                            + X
+                            * (
+                                7 * a[3]
+                                - 5 * a[5]
+                                + X
+                                * (
+                                    8 * a[4]
+                                    - 6 * a[6]
+                                    + X
+                                    * (
+                                        9 * a[5]
+                                        - 7 * a[7]
+                                        + X
+                                        * (
+                                            10 * a[6]
+                                            - 8 * a[8]
+                                            + X
+                                            * (
+                                                11 * a[7]
+                                                - 9 * a[9]
+                                                + X
+                                                * (
+                                                    -10 * a[10]
+                                                    + 12 * a[8]
+                                                    + 13 * a[9] * X
+                                                    + 14 * a[10] * X ** 2
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+            * dX
+        )
+        #
+        ddy = (
+            2
+            * (
+                -2 * a[0]
+                + a[2]
+                + X
+                * (
+                    -6 * a[1]
+                    + 3 * a[3]
+                    + X
+                    * (
+                        6 * (a[0] - 2 * a[2] + a[4])
+                        + X
+                        * (
+                            10 * (a[1] - 2 * a[3] + a[5])
+                            + 15 * (a[2] - 2 * a[4] + a[6]) * X
+                            + 21 * (a[3] - 2 * a[5] + a[7]) * X ** 2
+                            + 28 * (a[4] - 2 * a[6] + a[8]) * X ** 3
+                            + 36 * (a[5] - 2 * a[7] + a[9]) * X ** 4
+                            + 45 * (a[10] + a[6] - 2 * a[8]) * X ** 5
+                            + 55 * (a[7] - 2 * a[9]) * X ** 6
+                            + 66 * (-2 * a[10] + a[8]) * X ** 7
+                            + 78 * a[9] * X ** 8
+                            + 91 * a[10] * X ** 9
+                        )
+                    )
+                )
+            )
+            * dX ** 2
+        )
+        S[i, 0] = SE * (y - np.sin(2 * np.pi * y) / 2 / np.pi)
+        S[i, 1] = SE * (dy - np.cos(2 * np.pi * y) * dy)
+        S[i, 2] = SE * (
+            ddy - np.cos(2 * np.pi * y) * ddy + 2 * np.pi * np.sin(2 * np.pi * y) * dy ** 2
+        )
     S[2 * Nte + 1 :, 0] = SE
 
     return S
