@@ -15,7 +15,7 @@ from traj import cycloid
 from utils import create_dirs
 
 
-def train(v, process):
+def train(v):
     if v["mode"] == "power":
         optim = PSO_POWER(v)
     elif v["mode"] == "gauss_n4":
@@ -23,15 +23,11 @@ def train(v, process):
     elif v["mode"] == "gauss_n6":
         optim = PSO_GAUSS6(v)
 
-    if process == "single":
-        results = [optim.compute(0)]
-    elif process == "parallel":
-        p = Pool(4)
-        results = p.map(optim.compute, range(10))
-    else:
-        print("実行回数を適切に指定して!")
-        print(f"{process}")
+    if exec_count <= 0:
         exit()
+
+    p = Pool(4)
+    results = p.map(optim.compute, range(exec_count))
 
     for i, res in enumerate(results):
         create_dirs(v["datadir"] + "param/")
@@ -48,13 +44,11 @@ def train(v, process):
         )
 
 
-def test(v, process):
+def test(v):
     """学習したパラメーターからテストを実行
     """
-    count = 1 if process == "single" else 10
-
     energys = {}
-    for i in range(count):
+    for i in range(exec_count):
         v["i"] = i
 
         param_path = v["datadir"] + f"param/{i}_param_pso_{v['mode']}_te{v['TE']}_se{v['SE']}.csv"
@@ -98,44 +92,79 @@ def test(v, process):
     print(f"mean {sum(energys.values()) / len(energys.values())}")
 
 
-if __name__ == "__main__":
+def run_once(args):
+    print("##################")
+    print("### Train Once ###")
+    print("##################")
+    print("TE = {}[s], SE = {}[deg]".format(str(TE), str(int(np.rad2deg(SE)))), end="\n\n")
+
     start = time.time()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("mode", help="Train or Test.")
-    parser.add_argument("process", help="Single or Parallel.")
-    parser.add_argument("--plot", help="Plot graph or not.")
-    args = parser.parse_args()
+    for i in [4, 5, 6, 7]:
+        v = {
+            "mode": "power",
+            "TE": str(TE),
+            "SE": str(int(np.rad2deg(SE))),
+            "plot": plot,
+            "param_count": i,
+        }
+        v["datadir"] = f"data/2020-10-21/te{v['TE']}/se{v['SE']}/{v['mode']}/{i}/"
+        print("mode = {}, param = {}".format(v["mode"], v["param_count"]), end="\n\n")
+        train(v)
+
+    v["mode"] = "gauss_n4"
+    v["param_count"] = 4
+    v["datadir"] = f"data/2020-10-21/te{v['TE']}/se{v['SE']}/{v['mode']}/"
+    print("mode = {}, param = {}".format(v["mode"], v["param_count"]), end="\n\n")
+    train(v)
+
+    v["mode"] = "gauss_n6"
+    v["param_count"] = 6
+    v["datadir"] = f"data/2020-10-21/te{v['TE']}/se{v['SE']}/{v['mode']}/"
+    print("mode = {}, param = {}".format(v["mode"], v["param_count"]), end="\n\n")
+    train(v)
+
+    print(f"Elapsed time: {time.time()-start}")
+
+
+def run(args):
+    start = time.time()
 
     v = {
-        "mode": "gauss_n6",
+        "mode": mode,
         "TE": str(TE),
         "SE": str(int(np.rad2deg(SE))),
-        "isShow": bool(args.plot) if args.plot else False,
+        "plot": plot,
+        "param_count": param_count,
     }
-    v["datadir"] = f"data/2020-10-12/te{v['TE']}/se{v['SE']}/{v['mode']}/"
+    v["datadir"] = f"data/2020-10-21/te{v['TE']}/se{v['SE']}/{v['mode']}/"
     if v["mode"] == "power":
-        v["param_count"] = 4
         v["datadir"] += f"{v['param_count']}/"  # パラメータの数も記録する
-    elif v["mode"] == "gauss_n4":
-        v["param_count"] = 4
-    elif v["mode"] == "gauss_n6":
-        v["param_count"] = 6
-    else:
-        print(f"軌道生成法を正しく入力してください.\n{v['mode']}")
-        exit()
 
-    if args.mode == "train":
+    if args.exec_mode == "train":
         print("#####################")
         print("#   Train Running   #")
         print("#####################")
         print("TE = {}[s], SE = {}[deg]".format(str(TE), str(int(np.rad2deg(SE)))), end="\n\n")
-        train(v, args.process)
-    elif args.mode == "test":
+        train(v)
+    elif args.exec_mode == "test":
         print("####################")
         print("#   Test Running   #")
         print("####################")
         print("TE = {}[s], SE = {}[deg]".format(str(TE), str(int(np.rad2deg(SE)))), end="\n\n")
-        test(v, args.process)
+        test(v)
 
     print(f"Elapsed time: {time.time()-start}")
+
+
+if __name__ == "__main__":
+    start = time.time()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("exec_mode", help="Train or Test.")
+    args = parser.parse_args()
+
+    if args.exec_mode == "train" and once:
+        run_once(args)
+    else:
+        run(args)

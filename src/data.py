@@ -26,5 +26,5 @@ def plot_graph(df, v):
 
     fig = gridplot([[fig1, fig4], [fig2, fig5], [fig3, fig6],])
 
-    if v["isShow"]:
+    if v["plot"]:
         show(fig)
