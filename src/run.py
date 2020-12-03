@@ -127,6 +127,61 @@ def run_once(args):
     print(f"Elapsed time: {time.time()-start}")
 
 
+def run_test():
+    """学習したパラメーターからテストを実行
+    """
+    a = np.array(
+        [
+            1.09649864791602e-01,
+            8.08354152160375e-02,
+            1.43306289363947e00,
+            1.0090255492455e00,
+            1.11802962136856e00,
+        ]
+    )
+    print(f"param: {a}")
+
+    v = {
+        "i": 0,
+        "optim": "nsga2",
+        "mode": mode,
+        "TE": str(TE),
+        "SE": str(int(np.rad2deg(SE))),
+        "plot": plot,
+        "param_count": param_count,
+    }
+
+    S = cycloid(a, v)
+
+    X1, X2 = RK4(S)
+    w1 = X1[0, :] * 2.7244
+    w2 = X2[0, :] * 2.7244
+
+    trq = torque(S, X1, X2)
+
+    df = pd.DataFrame(
+        {
+            "t": np.linspace(0, Tend, Nrk + 1),
+            "θ": S[0 : 2 * Nrk + 1 : 2, 0],
+            "dθ": S[0 : 2 * Nrk + 1 : 2, 1],
+            "ddθ": S[0 : 2 * Nrk + 1 : 2, 2],
+            "trq": trq,
+            "w1": w1,
+            "w2": w2,
+        }
+    )
+
+    v["datadir"] = "./data/test/"
+    create_dirs("./data/test/output/")
+    df.to_csv(
+        f"./data/test/output/{v['i']}_output_{v['optim']}_{v['mode']}_te{v['TE']}_se{v['SE']}.csv"
+    )
+
+    plot_graph(df, v)
+
+    print(f'ene: {energy(df["trq"], df["θ"])}\n')
+
+
 def run(args):
     start = time.time()
 
@@ -161,10 +216,12 @@ if __name__ == "__main__":
     start = time.time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("exec_mode", help="Train or Test.")
+    parser.add_argument("exec_mode", help="Train, Test, Self.")
     args = parser.parse_args()
 
-    if args.exec_mode == "train" and once:
+    if args.exec_mode.upper() == "TRAIN" and once:
         run_once(args)
+    elif args.exec_mode.upper() == "SELF":
+        run_test()
     else:
         run(args)
