@@ -23,10 +23,16 @@ logger.addHandler(handler)
 logger.propagate = False
 
 
+def str2list(pstr):
+    return list(map(float, pstr.split()))
+
+
 def run_test(cfg):
     """パラメータから直接テストを実行
     """
-    a = np.array([0.09384623, -0.08338488, 0.14962311, 0.67922146, 1.1630475, -1.37600067])
+    a = np.array(
+        str2list("0.01295828 -0.06767406 -0.06906287 -0.27088044  0.2916935  -1.99868522")
+    )
     print(f"param: {a}")
 
     S = cycloid(a, cfg)
@@ -67,5 +73,4 @@ if __name__ == "__main__":
 
     gen_cfg(args.cfg_file)
     cfg = set_cfg(args.cfg_file)
-    logger.info(f'TE = {cfg["CALC"]["TE_str"]}[s], SE = {cfg["CALC"]["SE_str"]}[deg]')
     run_test(cfg)
