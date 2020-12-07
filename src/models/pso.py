@@ -1,5 +1,6 @@
 import copy
 import random
+from logging import DEBUG, Formatter, StreamHandler, getLogger
 
 import numpy as np
 from tqdm import tqdm
@@ -9,6 +10,17 @@ from config.param_of_equation import *
 from models.eval import torque
 from models.rk4 import RK4
 from models.traj import cycloid
+
+logger = getLogger(__name__)
+handler = StreamHandler()
+handler.setLevel(DEBUG)
+plain_formatter = Formatter(
+    "[%(asctime)s] %(name)s %(levelname)s: %(message)s", datefmt="%m/%d %H:%M:%S"
+)
+handler.setFormatter(plain_formatter)
+logger.setLevel(DEBUG)
+logger.addHandler(handler)
+logger.propagate = False
 
 
 class PSO:
@@ -45,7 +57,7 @@ class PSO:
     def compute(self, _):
         """PSOを計算
         """
-        print("Initializing variables\n")
+        logger.info("initializing variables.")
 
         pos = self.init_pos()
         vel = np.zeros((self.parti_count, self.param_count))
@@ -56,7 +68,7 @@ class PSO:
         best_parti = np.argmin(p_best_scores)
         g_best_pos = p_best_pos[best_parti]
 
-        print("Start calculation")
+        logger.info("start training")
         for t in tqdm(range(self.loop)):
             for n in range(self.parti_count):
                 # n番目のx, y, vx, vyを定義
@@ -85,7 +97,8 @@ class PSO:
             # print(f"param: {g_best_pos}")
             # print(f"score: {np.min(p_best_scores)}\n")
 
-        print(f"\ng_best_pos: {g_best_pos}\n")
+        logger.info("finish training")
+        logger.info(f"\ng_best_pos: {g_best_pos}\n")
 
         return g_best_pos
 
