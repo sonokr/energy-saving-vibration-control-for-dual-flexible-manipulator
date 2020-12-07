@@ -2,12 +2,16 @@ from bokeh.io import output_file, show
 from bokeh.layouts import gridplot
 from bokeh.plotting import figure
 
-from utils import create_dirs
+from utils.utils import create_dirs
 
 
-def plot_graph(df, v):
-    create_dirs(v["datadir"] + "plot/")
-    output_file(v["datadir"] + f"plot/{v['i']}_plot_pso_{v['mode']}_te{v['TE']}_se{v['SE']}.html")
+def plot_graph(df, cfg):
+    create_dirs(cfg["OUTPUT_DIR"] + "plot/")
+    output_file(
+        cfg["OUTPUT_DIR"]
+        + f"plot/{0}_plot_pso_{cfg['COMM']['MODE']}_ \
+        te{cfg['CALC']['TE_str']}_se{cfg['CALC']['SE_str']}.html"
+    )
 
     width, height = 350, 250
     fig1 = figure(width=width, plot_height=height, title="θ")
@@ -26,5 +30,5 @@ def plot_graph(df, v):
 
     fig = gridplot([[fig1, fig4], [fig2, fig5], [fig3, fig6],])
 
-    if v["plot"]:
+    if cfg["COMM"]["PLOT"]:
         show(fig)

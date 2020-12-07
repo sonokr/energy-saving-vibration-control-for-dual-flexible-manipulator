@@ -4,10 +4,11 @@ import random
 import numpy as np
 from tqdm import tqdm
 
-from cond import *
-from eval import torque
-from rk4 import RK4
-from traj import cycloid
+from config.config_of_calc import *
+from config.param_of_equation import *
+from models.eval import torque
+from models.rk4 import RK4
+from models.traj import cycloid
 
 
 class PSO:

@@ -1,6 +1,8 @@
+import numpy as np
 from scipy import integrate
 
-from cond import *
+from config.config_of_calc import *
+from config.param_of_equation import *
 
 
 def torque(S, X1, X2):

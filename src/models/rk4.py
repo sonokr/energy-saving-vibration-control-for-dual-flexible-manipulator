@@ -1,7 +1,8 @@
 import numpy as np
 from numba import njit
 
-from cond import *
+from config.config_of_calc import *
+from config.param_of_equation import *
 
 
 @njit("Tuple((f8[:], f8[:]))(f8, f8, f8, f8, f8, f8)")

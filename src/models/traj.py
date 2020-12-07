@@ -1,16 +1,19 @@
 import numpy as np
 from numba import njit
 
-from cond import *
+from config.config_of_calc import *
+from config.param_of_equation import *
 
 
-def cycloid(a, v):
-    if v["mode"] == "power":
+def cycloid(a, cfg):
+    if cfg["COMM"]["MODE"] == "power":
         return power(a)
-    elif v["mode"] == "gauss_n4":
+    elif cfg["COMM"]["MODE"] == "gauss_n4":
         return gauss_n4(a)
-    elif v["mode"] == "gauss_n6":
+    elif cfg["COMM"]["MODE"] == "gauss_n6":
         return gauss_n6(a)
+    else:
+        raise Exception(f'Invalid input function {cfg["COMM"]["MODE"]}.')
 
 
 @njit("f8[:,:](f8[:])")
