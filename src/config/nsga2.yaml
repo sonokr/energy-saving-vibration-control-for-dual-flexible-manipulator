@@ -1,0 +1,12 @@
+COMM:
+  OPTIM: nsga2
+  MODE: power
+  PARAM: 6
+  EXEC: 1
+  PLOT: True
+CALC:
+  TE: 0.8
+  SE: 45
+  DT: 0.002
+  TEND: 3.0
+OUTPUT_DIR: ./data/2020-12-03/te0.9/se90/power/6/2dim/

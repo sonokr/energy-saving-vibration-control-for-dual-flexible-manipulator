@@ -1,33 +1,3 @@
-import numpy as np
-
-###########
-# 実行条件 #
-###########
-
-mode = "power"
-param_count = 5
-
-exec_count = 10
-
-plot = True
-
-once = True
-
-
-###########
-# 計算条件 #
-###########
-
-dt = 0.002
-Tend = 3.0
-
-TE = 0.7  # 駆動時間
-SE = np.pi * (1 / 6)  # 目標角
-
-Nrk = round(Tend / dt)
-Nte = round(TE / dt)
-
-
 #############
 # パラメータ #
 #############
