@@ -6,11 +6,11 @@ from utils.utils import create_dirs
 
 
 def plot_graph(df, cfg):
-    create_dirs(cfg["OUTPUT_DIR"] + "plot/")
+    create_dirs(cfg["DATA"]["DIR"] + "plot/")
     output_file(
-        cfg["OUTPUT_DIR"]
-        + f"plot/{0}_plot_pso_{cfg['COMM']['MODE']}_ \
-        te{cfg['CALC']['TE_str']}_se{cfg['CALC']['SE_str']}.html"
+        cfg["DATA"]["DIR"]
+        + f"plot/{0}_plot_pso_{cfg['COMM']['MODE']}_\
+te{cfg['CALC']['TE_str']}_se{cfg['CALC']['SE_str']}.html"
     )
 
     width, height = 350, 250

@@ -32,36 +32,30 @@ def train(cfg):
         else:
             raise Exception(f'Invalid input function {cfg["COMM"]["MODE"]}.')
 
-        p = Pool(4)
+        p = Pool(2)
         results = p.map(optim.compute, range(cfg["COMM"]["EXEC"]))
 
         for i, res in enumerate(results):
-            create_dirs(cfg["OUTPUT_DIR"] + "param/")
+            create_dirs(cfg["DATA"]["DIR"] + "param/")
             np.savetxt(
-                cfg["OUTPUT_DIR"]
-                + f'param/{i}_param_{cfg["COMM"]["OPTIM"]}_{cfg["COMM"]["MODE"]}_ \
-                te{cfg["CALC"]["TE_str"]}_se{cfg["CALC"]["SE_str"]}.csv',
+                cfg["DATA"]["DIR"]
+                + f'param/{i}_param_{cfg["COMM"]["OPTIM"]}_{cfg["COMM"]["MODE"]}_\
+te{cfg["CALC"]["TE_str"]}_se{cfg["CALC"]["SE_str"]}.csv',
                 res,
                 delimiter=",",
             )
             logger.info(
-                "Parameter saved at \n    "
-                + cfg["OUTPUT_DIR"]
-                + f'param/{i}_param_{cfg["COMM"]["OPTIM"]}_{cfg["COMM"]["MODE"]}_ \
-                te{cfg["CALC"]["TE_str"]}_se{cfg["CALC"]["SE_str"]}.csv'
+                "saved param at "
+                + cfg["DATA"]["DIR"]
+                + f'param/{i}_param_{cfg["COMM"]["OPTIM"]}_{cfg["COMM"]["MODE"]}_\
+te{cfg["CALC"]["TE_str"]}_se{cfg["CALC"]["SE_str"]}.csv'
             )
     elif cfg["COMM"]["OPTIM"] == "nsga2":
+        p = Pool(2)
         optim = NSGA2(cfg)
-        optim.run(0)
+        results = p.map(optim.run, range(cfg["COMM"]["EXEC"]))
     else:
         raise Exception(f'Invalid optimizer {cfg["COMM"]["OPTIM"]}.')
-
-
-def run(args):
-    gen_cfg(args.cfg_file)
-    cfg = set_cfg(args.cfg_file)
-    logger.info(f'TE = {cfg["CALC"]["TE_str"]}[s], SE = {cfg["CALC"]["SE_str"]}[deg]')
-    train(cfg)
 
 
 if __name__ == "__main__":
@@ -69,4 +63,6 @@ if __name__ == "__main__":
     parser.add_argument("cfg_file", help="Config file path")
     args = parser.parse_args()
 
-    run(args)
+    gen_cfg(args.cfg_file)
+    cfg = set_cfg(args.cfg_file)
+    train(cfg)
