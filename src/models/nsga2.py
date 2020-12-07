@@ -70,9 +70,8 @@ class NSGA2:
         X1, X2 = RK4(S)
         trq = torque(S, X1, X2)
 
-        error = (
-            abs(X1[0, self.cfg["CALC"]["Nte"] + 1 :]).max()
-            + abs(X2[0, self.cfg["CALC"]["Nte"] + 1 :]).max()
+        error = np.amax(abs(X1[0, self.cfg["CALC"]["Nte"] + 1 :])) + np.amax(
+            abs(X2[0, self.cfg["CALC"]["Nte"] + 1 :])
         )
         ene = energy(trq, S[0 : 2 * self.cfg["CALC"]["Nrk"] + 1 : 2, 0])
 
@@ -83,7 +82,7 @@ class NSGA2:
 
         S = cycloid(np.array(a), self.cfg)
         if np.abs(S[0 : 2 * self.cfg["CALC"]["Nrk"] + 1, 2]).max() >= 45:
-            return [10 ** 6, 10 ** 6]
+            return [10 ** 6, 10 ** 6, 10 ** 6]
 
         X1, X2 = RK4(S)
         trq = torque(S, X1, X2)
@@ -94,16 +93,41 @@ class NSGA2:
             energy(trq, S[0 : 2 * self.cfg["CALC"]["Nrk"] + 1 : 2, 0]),
         ]
 
+    def error_func3(self, a):
+        a = update_param(a, self.cfg["COMM"]["MODE"])
+
+        S = cycloid(np.array(a), self.cfg)
+        if np.abs(S[0 : 2 * self.cfg["CALC"]["Nrk"] + 1, 2]).max() >= 45:
+            return [10 ** 6, 10 ** 6]
+
+        X1, X2 = RK4(S)
+
+        return [
+            np.amax(abs(X1[0, self.cfg["CALC"]["Nte"] + 1 :])),
+            np.amax(abs(X2[0, self.cfg["CALC"]["Nte"] + 1 :])),
+        ]
+
     def run(self, pid):
-        logger.info(f"pid{pid}: start NSGA2 ")
+        logger.info(f"pid{pid} start training.")
 
         start = time.time()
 
-        problem = Problem(self.cfg["COMM"]["PARAM"], 2)  # 最適化パラメータの数, 目的関数の数
+        problem = Problem(
+            self.cfg["COMM"]["PARAM"], self.cfg["NSGA2"]["OBJECT"]
+        )  # 最適化パラメータの数, 目的関数の数
         problem.types[:] = Real(-2.0, 2.0)  # パラメータの範囲
-        problem.function = self.error_func1
+
+        if self.cfg["NSGA2"]["ERROR"] == "func1":
+            problem.function = self.error_func1
+        elif self.cfg["NSGA2"]["ERROR"] == "func2":
+            problem.function = self.error_func2
+        elif self.cfg["NSGA2"]["ERROR"] == "func3":
+            problem.function = self.error_func3
+        else:
+            raise Exception(f'Invalid NSGA2 error function {self.cfg["NSGA2"]["ERROR"]}')
+
         algorithm = NSGAII(problem)
-        algorithm.run(5000)  # 反復回数
+        algorithm.run(self.cfg["NSGA2"]["EPOCH"])  # 反復回数
 
         # データ整理
         # params: 係数a
@@ -121,18 +145,24 @@ class NSGA2:
 
         # 残留振動が最小になるaの値を表示
         index = np.argmin(f1s)
-        logger.info(f"pid{pid}: vib = {f1s[index]:.3f}[deg], ene = {f2s[index]:.3f}[J]")
-        logger.info(f"pid{pid}: a = {params[index, :]}")
+        logger.info(f"pid{pid} vib = {f1s[index]:.3f}[deg], ene = {f2s[index]:.3f}[J]")
+        logger.info(f"pid{pid} a = {params[index, :]}")
 
-        create_dirs(self.cfg["OUTPUT_DIR"] + "param/")
-        create_dirs(self.cfg["OUTPUT_DIR"] + "data/")
+        create_dirs(self.cfg["DATA"]["DIR"] + "param/")
+        create_dirs(self.cfg["DATA"]["DIR"] + "data/")
 
         np.savetxt(
-            self.cfg["OUTPUT_DIR"]
-            + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_ \
-            te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
+            self.cfg["DATA"]["DIR"]
+            + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
             params[index, :],
             delimiter=",",
+        )
+        logger.info(
+            f"pid{pid} saved param at "
+            + self.cfg["DATA"]["DIR"]
+            + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
         )
 
         # 係数a, 残留振動, エネルギーをCSVファイルに書き出す
@@ -141,11 +171,17 @@ class NSGA2:
         data[:, self.cfg["COMM"]["PARAM"]] = f1s
         data[:, self.cfg["COMM"]["PARAM"] + 1] = f2s
         np.savetxt(
-            self.cfg["OUTPUT_DIR"]
-            + f'data/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_ \
-            te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
+            self.cfg["DATA"]["DIR"]
+            + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
             data,
             delimiter=",",
         )
+        logger.info(
+            f"pid{pid} saved data at "
+            + self.cfg["DATA"]["DIR"]
+            + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
+        )
 
-        logger.info(f"pid{pid}: finish NSGA2  in {int(time.time()-start)}")
+        logger.info(f"pid{pid} finished in {int(time.time()-start)}[s]")
