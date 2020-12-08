@@ -31,7 +31,9 @@ def run_test(cfg):
     """パラメータから直接テストを実行
     """
     a = np.array(
-        str2list("0.01295828 -0.06767406 -0.06906287 -0.27088044  0.2916935  -1.99868522")
+        str2list(
+            "1.80942409e-03 -9.62329406e-02  6.73637823e-02 -3.12331646e-03 -1.75557591e-01 -1.85779743e+00"
+        )
     )
     print(f"param: {a}")
 
@@ -68,9 +70,9 @@ def run_test(cfg):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("cfg_file", help="Config file path")
+    parser.add_argument("cfg", help="Config file path")
     args = parser.parse_args()
 
-    gen_cfg(args.cfg_file)
-    cfg = set_cfg(args.cfg_file)
+    gen_cfg(args.cfg)
+    cfg = set_cfg(args.cfg)
     run_test(cfg)

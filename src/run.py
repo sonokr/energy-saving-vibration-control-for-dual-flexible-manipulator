@@ -60,9 +60,9 @@ te{cfg["CALC"]["TE_str"]}_se{cfg["CALC"]["SE_str"]}.csv'
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("cfg_file", help="Config file path")
+    parser.add_argument("cfg", help="Config file path")
     args = parser.parse_args()
 
-    gen_cfg(args.cfg_file)
-    cfg = set_cfg(args.cfg_file)
+    gen_cfg(args.cfg)
+    cfg = set_cfg(args.cfg)
     train(cfg)
