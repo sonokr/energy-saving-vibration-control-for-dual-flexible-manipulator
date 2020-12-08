@@ -134,54 +134,157 @@ class NSGA2:
         # f1s   : 残留振動 [deg]
         # f2s   : エネルギー
         params = np.empty([100, self.cfg["COMM"]["PARAM"]])
-        f1s = np.empty([100])
-        f2s = np.empty([100])
-        for i, solution in enumerate(algorithm.result):
-            result = tuple(solution.variables + solution.objectives[:])
+        if self.cfg["NSGA2"]["ERROR"] == "func1":
+            f1s = np.empty([100])
+            f2s = np.empty([100])
+            for i, solution in enumerate(algorithm.result):
+                result = tuple(solution.variables + solution.objectives[:])
+                params[i, :] = result[: self.cfg["COMM"]["PARAM"]][:]
+                f1s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
+                f2s[i] = result[self.cfg["COMM"]["PARAM"] + 1]
+            # 残留振動が最小になるaの値を表示
+            index = np.argmin(f1s)
+            logger.info(f"pid{pid} sum_vib = {f1s[index]:.3f}[deg], ene = {f2s[index]:.3f}[J]")
+            logger.info(f"pid{pid} a = {params[index, :]}")
 
-            params[i, :] = result[: self.cfg["COMM"]["PARAM"]][:]
-            f1s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
-            f2s[i] = result[self.cfg["COMM"]["PARAM"] + 1]
+            create_dirs(self.cfg["DATA"]["DIR"] + "param/")
+            create_dirs(self.cfg["DATA"]["DIR"] + "data/")
 
-        # 残留振動が最小になるaの値を表示
-        index = np.argmin(f1s)
-        logger.info(f"pid{pid} vib = {f1s[index]:.3f}[deg], ene = {f2s[index]:.3f}[J]")
-        logger.info(f"pid{pid} a = {params[index, :]}")
-
-        create_dirs(self.cfg["DATA"]["DIR"] + "param/")
-        create_dirs(self.cfg["DATA"]["DIR"] + "data/")
-
-        np.savetxt(
-            self.cfg["DATA"]["DIR"]
-            + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+            np.savetxt(
+                self.cfg["DATA"]["DIR"]
+                + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
 te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
-            params[index, :],
-            delimiter=",",
-        )
-        logger.info(
-            f"pid{pid} saved param at "
-            + self.cfg["DATA"]["DIR"]
-            + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+                params[index, :],
+                delimiter=",",
+            )
+            logger.info(
+                f"pid{pid} saved param at "
+                + self.cfg["DATA"]["DIR"]
+                + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
 te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
-        )
+            )
 
-        # 係数a, 残留振動, エネルギーをCSVファイルに書き出す
-        data = np.empty([100, self.cfg["COMM"]["PARAM"] + 2])
-        data[:, 0 : self.cfg["COMM"]["PARAM"]] = params
-        data[:, self.cfg["COMM"]["PARAM"]] = f1s
-        data[:, self.cfg["COMM"]["PARAM"] + 1] = f2s
-        np.savetxt(
-            self.cfg["DATA"]["DIR"]
-            + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+            # 係数a, 残留振動, エネルギーをCSVファイルに書き出す
+            data = np.empty([100, self.cfg["COMM"]["PARAM"] + self.cfg["NSGA2"]["OBJECT"]])
+            data[:, 0 : self.cfg["COMM"]["PARAM"]] = params
+            data[:, self.cfg["COMM"]["PARAM"]] = f1s
+            data[:, self.cfg["COMM"]["PARAM"] + 1] = f2s
+            np.savetxt(
+                self.cfg["DATA"]["DIR"]
+                + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
 te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
-            data,
-            delimiter=",",
-        )
-        logger.info(
-            f"pid{pid} saved data at "
-            + self.cfg["DATA"]["DIR"]
-            + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+                data,
+                delimiter=",",
+            )
+            logger.info(
+                f"pid{pid} saved data at "
+                + self.cfg["DATA"]["DIR"]
+                + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
 te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
-        )
+            )
+        elif self.cfg["NSGA2"]["ERROR"] == "func2":
+            f1s = np.empty([100])
+            f2s = np.empty([100])
+            f3s = np.empty([100])
+            for i, solution in enumerate(algorithm.result):
+                result = tuple(solution.variables + solution.objectives[:])
+                params[i, :] = result[: self.cfg["COMM"]["PARAM"]][:]
+                f1s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
+                f2s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
+                f3s[i] = result[self.cfg["COMM"]["PARAM"] + 1]
+            index = np.argmin(f1s)
+            logger.info(
+                f"pid{pid} vib1 = {f1s[index]:.3f}[deg], \
+vib2 = {f2s[index]:.3f}[deg], ene = {f3s[index]:.3f}[J]"
+            )
+            logger.info(f"pid{pid} a = {params[index, :]}")
+
+            create_dirs(self.cfg["DATA"]["DIR"] + "param/")
+            create_dirs(self.cfg["DATA"]["DIR"] + "data/")
+
+            np.savetxt(
+                self.cfg["DATA"]["DIR"]
+                + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
+                params[index, :],
+                delimiter=",",
+            )
+            logger.info(
+                f"pid{pid} saved param at "
+                + self.cfg["DATA"]["DIR"]
+                + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
+            )
+
+            # 係数a, 残留振動, エネルギーをCSVファイルに書き出す
+            data = np.empty([100, self.cfg["COMM"]["PARAM"] + self.cfg["NSGA2"]["OBJECT"]])
+            data[:, 0 : self.cfg["COMM"]["PARAM"]] = params
+            data[:, self.cfg["COMM"]["PARAM"]] = f1s
+            data[:, self.cfg["COMM"]["PARAM"] + 1] = f2s
+            data[:, self.cfg["COMM"]["PARAM"] + 2] = f3s
+            np.savetxt(
+                self.cfg["DATA"]["DIR"]
+                + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
+                data,
+                delimiter=",",
+            )
+            logger.info(
+                f"pid{pid} saved data at "
+                + self.cfg["DATA"]["DIR"]
+                + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
+            )
+        elif self.cfg["NSGA2"]["ERROR"] == "func3":
+            f1s = np.empty([100])
+            f2s = np.empty([100])
+            for i, solution in enumerate(algorithm.result):
+                result = tuple(solution.variables + solution.objectives[:])
+
+                params[i, :] = result[: self.cfg["COMM"]["PARAM"]][:]
+                f1s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
+                f2s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
+            # 残留振動が最小になるaの値を表示
+            index = np.argmin(f1s)
+            logger.info(f"pid{pid} vib1 = {f1s[index]:.3f}[deg], ene2 = {f2s[index]:.3f}[deg]")
+            logger.info(f"pid{pid} a = {params[index, :]}")
+
+            create_dirs(self.cfg["DATA"]["DIR"] + "param/")
+            create_dirs(self.cfg["DATA"]["DIR"] + "data/")
+
+            np.savetxt(
+                self.cfg["DATA"]["DIR"]
+                + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
+                params[index, :],
+                delimiter=",",
+            )
+            logger.info(
+                f"pid{pid} saved param at "
+                + self.cfg["DATA"]["DIR"]
+                + f'param/{pid}_param_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
+            )
+
+            # 係数a, 残留振動, エネルギーをCSVファイルに書き出す
+            data = np.empty([100, self.cfg["COMM"]["PARAM"] + self.cfg["NSGA2"]["OBJECT"]])
+            data[:, 0 : self.cfg["COMM"]["PARAM"]] = params
+            data[:, self.cfg["COMM"]["PARAM"]] = f1s
+            data[:, self.cfg["COMM"]["PARAM"] + 1] = f2s
+            np.savetxt(
+                self.cfg["DATA"]["DIR"]
+                + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv',
+                data,
+                delimiter=",",
+            )
+            logger.info(
+                f"pid{pid} saved data at "
+                + self.cfg["DATA"]["DIR"]
+                + f'data/{pid}_data_nsga2_{self.cfg["COMM"]["MODE"]}_\
+te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
+            )
+        else:
+            raise Exception(f'Invalid NSGA2 error function {self.cfg["NSGA2"]["ERROR"]}')
 
         logger.info(f"pid{pid} finished in {int(time.time()-start)}[s]")
