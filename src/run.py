@@ -1,4 +1,5 @@
 import argparse
+import atexit
 from logging import DEBUG, Formatter, StreamHandler, getLogger
 from multiprocessing import Pool
 
@@ -7,6 +8,7 @@ import numpy as np
 from models.nsga2 import NSGA2
 from models.pso import PSO_GAUSS4, PSO_GAUSS6, PSO_POWER
 from utils.config import gen_cfg, set_cfg
+from utils.line_notify import send_line_notify
 from utils.utils import create_dirs
 
 logger = getLogger(__name__)
@@ -61,8 +63,14 @@ te{cfg["CALC"]["TE_str"]}_se{cfg["CALC"]["SE_str"]}.csv'
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("cfg", help="Config file path")
+    parser.add_argument("--line", help="Line Notify")
     args = parser.parse_args()
 
     gen_cfg(args.cfg)
     cfg = set_cfg(args.cfg)
+
+    if args.line:
+        send_line_notify("学習開始！")
+        atexit.register(send_line_notify)
+
     train(cfg)
