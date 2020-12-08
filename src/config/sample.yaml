@@ -5,12 +5,12 @@ COMM:
   EXEC: 4  # 学習の実行回数
   PLOT: True  # テスト時にグラフを表示するか
 NSGA2:
-  ERROR: func2  # 評価関数の種類
-  OBJECT: 3  # 目的関数の数
-  EPOCH: 75000  # 繰り返し数
+  ERROR: func1  # 評価関数の種類
+  OBJECT: 2  # 目的関数の数
+  EPOCH: 10000  # 繰り返し数
 CALC:
-  TE: 0.8  # 駆動時間
-  SE: 45  # 目標角度
+  TE: 0.9  # 駆動時間
+  SE: 90  # 目標角度
   DT: 0.002  # 計算間隔
   TEND: 3.0  # 計算時間
 DATA:
