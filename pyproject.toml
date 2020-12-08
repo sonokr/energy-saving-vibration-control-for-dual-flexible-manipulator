@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "kosen_research2"
+name = "research"
 version = "0.1.0"
 description = ""
 authors = ["Ryota Kusunoki <ryotakusunoki@hotmail.com>"]
