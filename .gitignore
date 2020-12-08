@@ -182,3 +182,4 @@ dmypy.json
 
 data/*
 archive/*
+config_of_calc.py
