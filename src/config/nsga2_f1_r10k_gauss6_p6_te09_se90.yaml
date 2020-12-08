@@ -1,13 +1,13 @@
 COMM:
   OPTIM: nsga2  # 最適化関数
-  MODE: power  # サイクロイドの入力関数
+  MODE: gauss_n6  # サイクロイドの入力関数
   PARAM: 6  # 入力関数のパラメータ数
-  EXEC: 1  # 学習の実行回数
+  EXEC: 4  # 学習の実行回数
   PLOT: True  # テスト時にグラフを表示するか
 NSGA2:
   ERROR: func1  # 評価関数の種類
   OBJECT: 2  # 目的関数の数
-  EPOCH: 5000  # 繰り返し数
+  EPOCH: 10000  # 繰り返し数
 CALC:
   TE: 0.9  # 駆動時間
   SE: 90  # 目標角度
