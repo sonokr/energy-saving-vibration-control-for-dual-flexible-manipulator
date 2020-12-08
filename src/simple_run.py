@@ -1,4 +1,13 @@
 import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("cfg", help="Config file path")
+args = parser.parse_args()
+
+from utils.config import gen_cfg
+
+gen_cfg(args.cfg)
+
 from logging import DEBUG, Formatter, StreamHandler, getLogger
 
 import numpy as np
@@ -7,7 +16,7 @@ import pandas as pd
 from models.eval import energy, torque
 from models.rk4 import RK4
 from models.traj import cycloid
-from utils.config import gen_cfg, set_cfg
+from utils.config import set_cfg
 from utils.data import plot_graph
 from utils.utils import create_dirs
 
@@ -30,11 +39,7 @@ def str2list(pstr):
 def run_test(cfg):
     """パラメータから直接テストを実行
     """
-    a = np.array(
-        str2list(
-            "1.80942409e-03 -9.62329406e-02  6.73637823e-02 -3.12331646e-03 -1.75557591e-01 -1.85779743e+00"
-        )
-    )
+    a = np.array(str2list("0.0 0.0 0.0 0.0 0.0 0.0"))
     print(f"param: {a}")
 
     S = cycloid(a, cfg)
@@ -69,10 +74,5 @@ def run_test(cfg):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("cfg", help="Config file path")
-    args = parser.parse_args()
-
-    gen_cfg(args.cfg)
     cfg = set_cfg(args.cfg)
     run_test(cfg)
