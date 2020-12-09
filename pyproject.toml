@@ -18,6 +18,7 @@ joblib = "^0.16.0"
 Platypus-Opt = "^1.0.4"
 requests = "^2.25.0"
 python-dotenv = "^0.15.0"
+selenium = "^3.141.0"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
