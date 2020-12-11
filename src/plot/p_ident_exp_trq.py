@@ -1,11 +1,10 @@
 import csv
 import os
 
-import bokeh
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from bokeh.io import export_png
-from bokeh.plotting import figure
 from numba import njit
 
 dt = 0.002
@@ -180,14 +179,6 @@ if __name__ == "__main__":
     df = pd.read_csv("./data/p_ident_exp/exp9_8.csv")
     trq_exp = np.array(df["トルク[ノイズカット]"])
 
-    ################
-    # plot setting #
-    ################
-    # output_file(v["datadir"] + "plot.png")
-    width, height = 350 * 3, 250 * 3
-    fig = figure(width=width, plot_height=height, title="トルク")
-    palette = bokeh.palettes.Category10[10]
-
     ##############
     # simulation #
     ##############
@@ -217,8 +208,20 @@ if __name__ == "__main__":
     ################
     # plot setting #
     ################
-    fig.line(df["t"], df["trq"], line_color=palette[0])
-    fig.line(df["t"], trq_exp, line_color=palette[1])
+    mpl.rcParams["figure.figsize"] = [6.0, 3.0]
+    plt.rcParams["mathtext.fontset"] = "stix"
+    plt.rcParams["mathtext.default"] = "default"
 
-    # show(fig)
-    export_png(fig, filename=v["datadir"] + "tr1q.png")
+    fig, ax = plt.subplots(1)
+
+    ax.plot(df["t"], trq_exp, label="Experiment")
+    ax.plot(df["t"], df["trq"], label="Cycloidal motion")
+
+    ax.set_ylabel(r"$\theta$ [rad]")
+    ax.set_xlabel(r"$t [s]$")
+
+    fig.patch.set_alpha(0)
+
+    plt.legend()
+    # plt.show()
+    fig.savefig(v["datadir"] + "trq.png", dpi=600)
