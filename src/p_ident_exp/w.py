@@ -220,6 +220,8 @@ if __name__ == "__main__":
         w1_exp = np.array(df["先端の変位[1mm]"])
     elif v["target"] == "w2":
         w1_exp = np.array(df["先端の変位[0.8mm]"])
+    else:
+        raise Exception("invalid target")
 
     #############
     # calculate #
@@ -279,7 +281,7 @@ if __name__ == "__main__":
             }
         )
         df.to_csv(v["datadir"] + f"output/{i}_output.csv")
-        print("Output saved at \n    " + v["datadir"] + f"output/{i}_output.csv")
+        print("Output saved at \n\t" + v["datadir"] + f"output/{i}_output.csv")
 
         ################
         # plot setting #
