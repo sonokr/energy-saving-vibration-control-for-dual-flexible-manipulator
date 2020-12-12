@@ -81,7 +81,7 @@ class NSGA2:
         a = update_param(a, self.cfg["COMM"]["MODE"])
 
         S = cycloid(np.array(a), self.cfg)
-        if np.abs(S[0 : 2 * self.cfg["CALC"]["Nrk"] + 1, 2]).max() >= 45:
+        if np.abs(S[0 : 2 * self.cfg["CALC"]["Nrk"] + 1, 2]).max() >= 60:
             return [10 ** 6, 10 ** 6, 10 ** 6]
 
         X1, X2 = RK4(S)
@@ -190,8 +190,8 @@ te{self.cfg["CALC"]["TE_str"]}_se{self.cfg["CALC"]["SE_str"]}.csv'
                 result = tuple(solution.variables + solution.objectives[:])
                 params[i, :] = result[: self.cfg["COMM"]["PARAM"]][:]
                 f1s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
-                f2s[i] = 180 * result[self.cfg["COMM"]["PARAM"]] / np.pi
-                f3s[i] = result[self.cfg["COMM"]["PARAM"] + 1]
+                f2s[i] = 180 * result[self.cfg["COMM"]["PARAM"] + 1] / np.pi
+                f3s[i] = result[self.cfg["COMM"]["PARAM"] + 2]
             index = np.argmin(f1s)
             logger.info(
                 f"pid{pid} vib1 = {f1s[index]:.3f}[deg], \
