@@ -1,6 +1,3 @@
-import csv
-import os
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,21 +13,23 @@ SE = np.pi * (2 / 4)
 Nrk = round(Tend / dt)
 Nte = round(TE / dt)
 
-with open("./data/p_ident_exp/w1/param/0_param.csv") as file:
-    reader = csv.reader(file)
-    a1_ = np.array([float(row[0]) for row in reader])
-ome1 = 12.68 * np.float64(a1_[0])
-z1 = 15.49 * 10.0 ** -3 * np.float64(a1_[1])
-a1 = 2.266 * 10.0 ** -1 * np.float64(a1_[2])
-b1 = 2.004 * 10.0 ** -3 * np.float64(a1_[3])
+# リンク1
+ome1 = 12.68 * 0.993
+z1 = 15.49 * 10 ** (-3) * 1.214
+a1 = 2.266 * 10 ** (-1) * 0.984
+b1 = 2.004 * 10 ** (-3) * 1.020
 
-with open("./data/p_ident_exp/w2/param/0_param.csv") as file:
-    reader = csv.reader(file)
-    a2_ = np.array([float(row[0]) for row in reader])
-ome2 = 10.71 * np.float64(a2_[0])
-z2 = 14.27 * 10.0 ** -3 * np.float64(a2_[1])
-a2 = 2.570 * 10.0 ** -1 * np.float64(a2_[2])
-b2 = 5.822 * 10.0 ** -3 * np.float64(a2_[3])
+# リンク2
+ome2 = 10.71 * 0.993
+z2 = 14.27 * 10 ** (-3) * 1.071
+a2 = 2.570 * 10 ** (-1) * 1.003
+b2 = 5.822 * 10 ** (-3) * 1.006
+
+# トルク関数
+g1 = 2.996 * 10 ** (-2) * 1.016
+g2 = 6.652 * 10 ** (-2) * 1.018
+g3 = 5.237 * 10 ** (-2) * 1.052
+cs = 4.202 * 10 ** (-2) * 1.131
 
 
 @njit("Tuple((f8[:], f8[:]))(f8, f8, f8, f8, f8, f8)")
@@ -143,14 +142,9 @@ def cycloid():
     return S
 
 
-def torque(S, X1, X2, a):
+def torque(S, X1, X2):
     """トルクを計算する
     """
-    g1 = 2.996 * 10 ** -2 * a[0]
-    g2 = 6.652 * 10 ** -2 * a[1]
-    g3 = 5.237 * 10 ** -2 * a[2]
-    cs = 4.202 * 10 ** -2 * a[3]
-
     ddW1 = -(
         2 * z1 * ome1 * X1[1, :]
         + ome1 ** 2 * X1[0, :]
@@ -167,61 +161,48 @@ def torque(S, X1, X2, a):
 
 
 if __name__ == "__main__":
-    v = {
-        "target": "trq",
-    }
-    v["datadir"] = "./data/plot/p_ident_exp/"
-    os.makedirs(v["datadir"], exist_ok=True)
-
-    ###################
-    # experience data #
-    ###################
+    # exp data
     df = pd.read_csv("./data/p_ident_exp/exp9_8.csv")
+    w1_exp = np.array(df["先端の変位[1mm]"])
+    w2_exp = np.array(df["先端の変位[0.8mm]"])
     trq_exp = np.array(df["トルク[ノイズカット]"])
 
-    ##############
-    # simulation #
-    ##############
+    # sim data
     S = cycloid()
 
     X1, X2 = RK4(S)
-    w1 = X1[0, :] * 2.7244
-    w2 = X2[0, :] * 2.7244
+    w1_sim = X1[0, :] * 2.7244
+    w2_sim = X2[0, :] * 2.7244
+    trq_sim = torque(S, X1, X2)
 
-    trq = torque(S, X1, X2, [1.016, 1.018, 1.052, 1.131])
+    t = np.linspace(0, Tend, Nrk + 1)
 
-    ###############
-    # deta output #
-    ###############
-    df = pd.DataFrame(
-        {
-            "t": np.linspace(0, Tend, Nrk + 1),
-            "θ": S[0 : 2 * Nrk + 1 : 2, 0],
-            "dθ": S[0 : 2 * Nrk + 1 : 2, 1],
-            "ddθ": S[0 : 2 * Nrk + 1 : 2, 2],
-            "trq": trq,
-            "w1": w1,
-            "w2": w2,
-        }
-    )
+    # plot setting
+    savedir = "data/plot/p_ident_exp/"
 
-    ################
-    # plot setting #
-    ################
-    mpl.rcParams["figure.figsize"] = [6.0, 3.0]
+    mpl.rcParams["figure.figsize"] = [6.0, 5.0]
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["mathtext.default"] = "default"
 
-    fig, ax = plt.subplots(1)
+    for exp, sim, name, axis in zip(
+        [w1_exp, w2_exp, trq_exp],
+        [w1_sim, w2_sim, trq_sim],
+        ["w1", "w2", "trq"],
+        [r"$\theta [deg]$", r"$\theta [deg]$", r"$\tau [J]$",],
+    ):
+        print(name)
 
-    ax.plot(df["t"], trq_exp, label="Experiment")
-    ax.plot(df["t"], df["trq"], label="Cycloidal motion")
+        fig, ax = plt.subplots(1)
 
-    ax.set_ylabel(r"$\theta$ [rad]")
-    ax.set_xlabel(r"$t [s]$")
+        fig.patch.set_alpha(0)
+        fig.subplots_adjust(bottom=0.2)
 
-    fig.patch.set_alpha(0)
+        # plot
+        ax.plot(t[:1001], exp[:1001], label="Experiment")
+        ax.plot(t[:1001], sim[:1001], label="Simulation")
 
-    plt.legend()
-    # plt.show()
-    fig.savefig(v["datadir"] + "trq.png", dpi=600)
+        ax.set_ylabel(axis)
+        ax.set_xlabel(r"$t [s]$")
+
+        plt.legend()
+        fig.savefig(f"{savedir}{name}.png", dpi=600)
