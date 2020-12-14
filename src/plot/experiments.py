@@ -1,7 +1,8 @@
-import matplotlib as mpl
+# import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.gridspec import GridSpec
 
 dt = 0.002
 Tend = 3.0
@@ -10,58 +11,77 @@ Nrk = round(Tend / dt)
 
 
 if __name__ == "__main__":
-    # exp data
-    df = pd.read_csv("data/2020-11-04/楠1104実験用データ/te0.8se45/ガウス関数/6/g_s45_t08.csv")
-    s_exp = np.array(df['"Model Root"/"EX_S2"'])
-    ds_exp = np.array(df['"Model Root"/"EX_V2"'])
-    w1_exp = np.array(df['"Model Root"/"w1"'])
-    w2_exp = np.array(df['"Model Root"/"w2"'])
-    trq_exp = np.array(df['"Model Root"/"Trq"']) - 0.04
+    df = pd.read_csv("data/2020-12-14/data_TE09_S90.csv")
 
     # sim data
-    df = pd.read_csv(
-        "data/2020-11-04/楠1104実験用データ/te0.8se45/ガウス関数/6/0_3_output_pso_gauss_n6_te0.8_se45.csv"
-    )
-    s_sim = np.array(df["θ"]) * np.rad2deg(1)
-    ds_sim = np.array(df["dθ"])
-    w1_sim = np.array(df["w1"]) * np.rad2deg(1) / 2.7244
-    w2_sim = np.array(df["w2"]) * np.rad2deg(1) / 2.7244
-    trq_sim = np.array(df["trq"])
+    s_sim = np.array(df["SIM_S"])
+    ds_sim = np.array(df["SIM_DS"])
+    w1_sim = np.array(df["SIM_W1"]) * 100
+    w2_sim = np.array(df["SIM_W2"]) * 100
+    trq_sim = np.array(df["SIM_τ"])
+
+    # exp data
+    s_exp = np.array(df["EX_S"])
+    ds_exp = np.array(df["EX_DS"])
+    w1_exp = np.array(df["EX_W1"]) * 100
+    w2_exp = np.array(df["EX_W2"]) * 100
+    trq_exp = np.array(df["EX_τ"])
+
+    # cyc data
+    s_cyc = np.array(df["CYC_S"])
+    ds_cyc = np.array(df["CYC_DS"])
+    w1_cyc = np.array(df["CYC_W1"]) * 100
+    w2_cyc = np.array(df["CYC_W2"]) * 100
+    trq_cyc = np.array(df["CYC_τ"])
 
     t = np.linspace(0, Tend, Nrk + 1)
 
     # plot setting
     savedir = "data/plot/exp/"
 
-    mpl.rcParams["figure.figsize"] = [6.0, 5.0]
+    fig = plt.figure(figsize=(10, 12))
+    gs = GridSpec(nrows=3, ncols=2)
+
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["mathtext.default"] = "default"
+    plt.rcParams["font.size"] = 15
 
-    for exp, sim, name, axis in zip(
-        [s_exp, ds_exp, w1_exp, w2_exp, trq_exp],
-        [s_sim, ds_sim, w1_sim, w2_sim, trq_sim],
-        ["s", "ds", "w1", "w2", "trq"],
-        [
-            r"$\theta \rm{[deg]}$",
-            r"$d\theta \rm{[deg / s]}$",
-            r"$\theta \rm{[deg]}$",
-            r"$\theta \rm{[deg]}$",
-            r"$\tau \rm{[J]}$",
-        ],
+    for i, (exp, sim, cyc, name, axis) in enumerate(
+        zip(
+            [s_exp, ds_exp, w1_exp, w2_exp, trq_exp],
+            [s_sim, ds_sim, w1_sim, w2_sim, trq_sim],
+            [s_cyc, ds_cyc, w1_cyc, w2_cyc, trq_cyc],
+            ["s", "ds", "w1", "w2", "trq"],
+            [
+                r"$\theta \rm{[rad]}$",
+                r"$\dot{\theta} \rm{[rad / s]}$",
+                r"$w_1(l) \rm{[cm]}$",
+                r"$w_2(l) \rm{[cm]}$",
+                r"$\tau \rm{[Nm]}$",
+            ],
+        )
     ):
         print(name)
 
-        fig, ax = plt.subplots(1)
-
-        fig.patch.set_alpha(0)
-        fig.subplots_adjust(bottom=0.2)
+        y = i + 1 if i < 2 else i - 2
+        x = 0 if i < 2 else 1
+        ax = fig.add_subplot(gs[y, x])
 
         # plot
-        ax.plot(t[:1001], exp[:1001], label="Experiment")
-        ax.plot(t[:1001], sim[:1001], label="Simulation")
+        if name == "s":
+            ax.plot(t[:1001], cyc[:1001], label="Cycloidal Motion")
+            ax.plot(t[:1001], exp[:1001], label="Experiment")
+            ax.plot(t[:1001], sim[:1001], label="Simulation")
+            plt.legend()
+        else:
+            ax.plot(t[:1001], exp[:1001])
+            ax.plot(t[:1001], sim[:1001])
+            ax.plot(t[:1001], cyc[:1001])
 
         ax.set_ylabel(axis)
         ax.set_xlabel(r"$t [s]$")
 
-        plt.legend()
-        fig.savefig(f"{savedir}{name}.png", dpi=600)
+    fig.patch.set_alpha(0)
+    plt.tight_layout()
+
+    fig.savefig(f"{savedir}plot.png")

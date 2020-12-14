@@ -2,6 +2,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.gridspec import GridSpec
 from numba import njit
 
 dt = 0.002
@@ -163,16 +164,16 @@ def torque(S, X1, X2):
 if __name__ == "__main__":
     # exp data
     df = pd.read_csv("./data/p_ident_exp/exp9_8.csv")
-    w1_exp = np.array(df["先端の変位[1mm]"])
-    w2_exp = np.array(df["先端の変位[0.8mm]"])
+    w1_exp = np.array(df["先端の変位[1mm]"]) * 100
+    w2_exp = np.array(df["先端の変位[0.8mm]"]) * 100
     trq_exp = np.array(df["トルク[ノイズカット]"])
 
     # sim data
     S = cycloid()
 
     X1, X2 = RK4(S)
-    w1_sim = X1[0, :] * 2.7244
-    w2_sim = X2[0, :] * 2.7244
+    w1_sim = X1[0, :] * 2.7244 * 100
+    w2_sim = X2[0, :] * 2.7244 * 100
     trq_sim = torque(S, X1, X2)
 
     t = np.linspace(0, Tend, Nrk + 1)
@@ -180,29 +181,40 @@ if __name__ == "__main__":
     # plot setting
     savedir = "data/plot/p_ident_exp/"
 
-    mpl.rcParams["figure.figsize"] = [6.0, 5.0]
+    fig = plt.figure(figsize=(10, 8))
+    gs = GridSpec(nrows=2, ncols=2)
+
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["mathtext.default"] = "default"
+    plt.rcParams["font.size"] = 15
 
-    for exp, sim, name, axis in zip(
-        [w1_exp, w2_exp, trq_exp],
-        [w1_sim, w2_sim, trq_sim],
-        ["w1", "w2", "trq"],
-        [r"$\theta [deg]$", r"$\theta [deg]$", r"$\tau [J]$",],
+    for i, (exp, sim, name, axis) in enumerate(
+        zip(
+            [w1_exp, w2_exp, trq_exp],
+            [w1_sim, w2_sim, trq_sim],
+            ["w1", "w2", "trq"],
+            [r"$w_1(l) [cm]$", r"$w_2(l) [cm]$", r"$\tau [Nm]$",],
+        )
     ):
         print(name)
 
-        fig, ax = plt.subplots(1)
-
-        fig.patch.set_alpha(0)
-        fig.subplots_adjust(bottom=0.2)
+        y = i + 1 if i < 1 else i - 2
+        x = 0 if i < 1 else 1
+        ax = fig.add_subplot(gs[y, x])
 
         # plot
-        ax.plot(t[:1001], exp[:1001], label="Experiment")
-        ax.plot(t[:1001], sim[:1001], label="Simulation")
+        if name == "w1":
+            ax.plot(t[:1001], exp[:1001], label="Experiment")
+            ax.plot(t[:1001], sim[:1001], label="Simulation")
+            plt.legend()
+        else:
+            ax.plot(t[:1001], exp[:1001])
+            ax.plot(t[:1001], sim[:1001])
 
         ax.set_ylabel(axis)
         ax.set_xlabel(r"$t [s]$")
 
-        plt.legend()
-        fig.savefig(f"{savedir}{name}.png", dpi=600)
+    fig.patch.set_alpha(0)
+    plt.tight_layout()
+
+    fig.savefig(f"{savedir}plot.png")
