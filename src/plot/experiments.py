@@ -74,9 +74,9 @@ if __name__ == "__main__":
             ax.plot(t[:1001], sim[:1001], label="Simulation")
             plt.legend()
         else:
+            ax.plot(t[:1001], cyc[:1001])
             ax.plot(t[:1001], exp[:1001])
             ax.plot(t[:1001], sim[:1001])
-            ax.plot(t[:1001], cyc[:1001])
 
         ax.set_ylabel(axis)
         ax.set_xlabel(r"$t [s]$")
