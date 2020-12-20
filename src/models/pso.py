@@ -24,16 +24,16 @@ logger.propagate = False
 
 
 class PSO:
-    def __init__(self, v):
+    def __init__(self, cfg):
         self.parti_count = 50
-        self.param_count = v["param_count"]
+        self.param_count = cfg.COMM.PARAM
         self.loop = 200
-        self.v = v
+        self.cfg = cfg
 
     def evaluate(self, a):
         """評価関数
         """
-        S = cycloid(a, self.v)
+        S = cycloid(a, self.cfg)
         if np.abs(S[0 : 2 * Nrk + 1, 2]).max() >= 45:
             return 10 ** 6
 
@@ -104,15 +104,15 @@ class PSO:
 
 
 class PSO_POWER(PSO):
-    def __init__(self, v):
+    def __init__(self, cfg):
         self.parti_count = 50
-        self.param_count = v["param_count"]
+        self.param_count = cfg.COMM.PARAM
         self.loop = 200
 
         self.a_min = -2.0
         self.a_max = 2.0
 
-        self.v = v
+        self.cfg = cfg
 
     def init_pos(self):
         """PSOの位置を初期化
@@ -132,11 +132,11 @@ class PSO_POWER(PSO):
 
 
 class PSO_GAUSS4(PSO):
-    def __init__(self, v):
+    def __init__(self, cfg):
         self.parti_count = 50
-        self.param_count = v["param_count"]
+        self.param_count = cfg.COMM.PARAM
         self.loop = 200
-        self.v = v
+        self.cfg = cfg
 
     def init_pos(self):
         """PSOの位置を初期化
@@ -172,11 +172,11 @@ class PSO_GAUSS4(PSO):
 
 
 class PSO_GAUSS6(PSO):
-    def __init__(self, v):
+    def __init__(self, cfg):
         self.parti_count = 50
-        self.param_count = v["param_count"]
+        self.param_count = cfg.COMM.PARAM
         self.loop = 200
-        self.v = v
+        self.cfg = cfg
 
     def init_pos(self):
         """PSOの位置を初期化

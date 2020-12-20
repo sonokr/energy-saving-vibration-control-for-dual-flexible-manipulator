@@ -6,11 +6,11 @@ from utils.utils import create_dirs
 
 
 def plot_graph(df, cfg):
-    create_dirs(cfg["DATA"]["DIR"] + "plot/")
+    create_dirs(cfg.DATA.DIR + "plot/")
     output_file(
-        cfg["DATA"]["DIR"]
-        + f"plot/{0}_plot_pso_{cfg['COMM']['MODE']}_\
-te{cfg['CALC']['TE_str']}_se{cfg['CALC']['SE_str']}.html"
+        cfg.DATA.DIR
+        + f"plot/{0}_plot_pso_{cfg.COMM.MODE}_\
+te{cfg.CALC.TE_str}_se{cfg.CALC.SE_str}.html"
     )
 
     width, height = 350, 250
@@ -30,5 +30,5 @@ te{cfg['CALC']['TE_str']}_se{cfg['CALC']['SE_str']}.html"
 
     fig = gridplot([[fig1, fig4], [fig2, fig5], [fig3, fig6],])
 
-    if cfg["COMM"]["PLOT"]:
+    if cfg.COMM.PLOT:
         show(fig)

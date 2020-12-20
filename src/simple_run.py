@@ -39,7 +39,7 @@ def str2list(pstr):
 def run_test(cfg):
     """パラメータから直接テストを実行
     """
-    a = np.array(str2list("0.0 0.0 0.0 0.0 0.0 0.0"))
+    a = np.array(str2list("0 0 0"))
     print(f"param: {a}")
 
     S = cycloid(a, cfg)
@@ -52,10 +52,10 @@ def run_test(cfg):
 
     df = pd.DataFrame(
         {
-            "t": np.linspace(0, cfg["CALC"]["TEND"], cfg["CALC"]["Nrk"] + 1),
-            "θ": S[0 : 2 * cfg["CALC"]["Nrk"] + 1 : 2, 0],
-            "dθ": S[0 : 2 * cfg["CALC"]["Nrk"] + 1 : 2, 1],
-            "ddθ": S[0 : 2 * cfg["CALC"]["Nrk"] + 1 : 2, 2],
+            "t": np.linspace(0, cfg.CALC.TEND, cfg.CALC.Nrk + 1),
+            "θ": S[0 : 2 * cfg.CALC.Nrk + 1 : 2, 0],
+            "dθ": S[0 : 2 * cfg.CALC.Nrk + 1 : 2, 1],
+            "ddθ": S[0 : 2 * cfg.CALC.Nrk + 1 : 2, 2],
             "trq": trq,
             "w1": w1,
             "w2": w2,
@@ -64,8 +64,8 @@ def run_test(cfg):
 
     create_dirs("./data/test/output/")
     df.to_csv(
-        f"./data/test/output/{0}_output_{cfg['COMM']['OPTIM']}_{cfg['COMM']['MODE']}_ \
-        te{cfg['CALC']['TE']}_se{cfg['CALC']['SE']}.csv"
+        f"./data/test/output/{0}_output_{cfg.COMM.OPTIM}_{cfg.COMM.MODE}_ \
+        te{cfg.CALC.TE}_se{cfg.CALC.SE}.csv"
     )
 
     plot_graph(df, cfg)
