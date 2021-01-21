@@ -180,8 +180,8 @@ if __name__ == "__main__":
     # plot setting
     savedir = "data/plot/p_ident_exp/"
 
-    fig = plt.figure(figsize=(10, 8))
-    gs = GridSpec(nrows=2, ncols=2)
+    fig = plt.figure(figsize=(8, 12))
+    gs = GridSpec(nrows=3, ncols=1)
 
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["mathtext.default"] = "default"
@@ -197,8 +197,8 @@ if __name__ == "__main__":
     ):
         print(name)
 
-        y = i + 1 if i < 1 else i - 2
-        x = 0 if i < 1 else 1
+        y = i
+        x = 0
         ax = fig.add_subplot(gs[y, x])
 
         # plot
