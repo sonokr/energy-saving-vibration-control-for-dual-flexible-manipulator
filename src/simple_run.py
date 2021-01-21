@@ -4,9 +4,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("cfg", help="Config file path")
 args = parser.parse_args()
 
-from utils.config import gen_cfg
+from utils.config import set_cfg
 
-gen_cfg(args.cfg)
+cfg = set_cfg(args.cfg)
 
 from logging import DEBUG, Formatter, StreamHandler, getLogger
 
@@ -16,8 +16,8 @@ import pandas as pd
 from models.eval import energy, torque
 from models.rk4 import RK4
 from models.traj import cycloid
-from utils.config import set_cfg
-from utils.data import plot_graph
+
+# from utils.data import plot_graph
 from utils.utils import create_dirs
 
 logger = getLogger(__name__)
@@ -39,7 +39,11 @@ def str2list(pstr):
 def run_test(cfg):
     """パラメータから直接テストを実行
     """
-    a = np.array(str2list("0 0 0"))
+    a = np.array(
+        str2list(
+            "6.455348882490680176e-06 2.205882734637162890e-02 1.144408684542324445e-01 -1.232142017960534019e+00 -2.722007589944505090e-01 -6.212503361141449298e-01"
+        )
+    )
     print(f"param: {a}")
 
     S = cycloid(a, cfg)
@@ -62,17 +66,17 @@ def run_test(cfg):
         }
     )
 
-    create_dirs("./data/test/output/")
+    create_dirs(cfg.DATA.DIR)
     df.to_csv(
-        f"./data/test/output/{0}_output_{cfg.COMM.OPTIM}_{cfg.COMM.MODE}_ \
-        te{cfg.CALC.TE}_se{cfg.CALC.SE}.csv"
+        cfg.DATA.DIR
+        + f"{0}_output_{cfg.COMM.OPTIM}_{cfg.COMM.MODE}_\
+te{cfg.CALC.TE}_se{cfg.CALC.SE}.csv"
     )
 
-    plot_graph(df, cfg)
+    # plot_graph(df, cfg)
 
     print(f'ene: {energy(df["trq"], df["θ"])}\n')
 
 
 if __name__ == "__main__":
-    cfg = set_cfg(args.cfg)
     run_test(cfg)
