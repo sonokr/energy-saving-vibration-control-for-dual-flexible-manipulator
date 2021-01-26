@@ -13,37 +13,34 @@ Nrk = round(Tend / dt)
 
 
 if __name__ == "__main__":
+    df = pd.read_csv("data/2020-12-14/data_TE09_S90.csv")
+
     # sim data
-    df = pd.read_csv(
-        "data/2020-11-04/楠1104実験用データ/te1.0se135/ガウス関数/6/0_8_output_pso_gauss_n6_te1.0_se135.csv"
-    )
-    s_sim = np.array(df["θ"]) * np.rad2deg(1)
-    ds_sim = np.array(df["dθ"])
-    w1_sim = np.array(df["w1"])
-    w2_sim = np.array(df["w2"])
-    trq_sim = np.array(df["trq"])
+    s_sim = np.array(df["SIM_S"])
+    ds_sim = np.array(df["SIM_DS"])
+    w1_sim = np.array(df["SIM_W1"]) * 100
+    w2_sim = np.array(df["SIM_W2"]) * 100
+    trq_sim = np.array(df["SIM_τ"])
 
     # exp data
-    df = pd.read_csv("data/2020-11-04/楠1104実験用データ/te1.0se135/ガウス関数/6/g_s135_t10.csv")
-    s_exp = np.array(df['"Model Root"/"EX_S2"'])
-    ds_exp = np.array(df['"Model Root"/"EX_V2"'])
-    w1_exp = np.array(df['"Model Root"/"w1"']) * 2.7244 / np.rad2deg(1)
-    w2_exp = np.array(df['"Model Root"/"w2"']) * 2.7244 / np.rad2deg(1)
-    trq_exp = np.array(df['"Model Root"/"Trq"'])
+    s_exp = np.array(df["EX_S"])
+    ds_exp = np.array(df["EX_DS"])
+    w1_exp = np.array(df["EX_W1"]) * 100
+    w2_exp = np.array(df["EX_W2"]) * 100
+    trq_exp = np.array(df["EX_τ"])
 
     # cyc data
-    df = pd.read_csv("data/2020-11-04/楠1104実験用データ/te1.0se135/c_s135_t10.csv")
-    s_cyc = np.array(df['"Model Root"/"EX_S2"'])
-    ds_cyc = np.array(df['"Model Root"/"EX_V2"'])
-    w1_cyc = np.array(df['"Model Root"/"w1"']) * 2.7244 / np.rad2deg(1)
-    w2_cyc = np.array(df['"Model Root"/"w2"']) * 2.7244 / np.rad2deg(1)
-    trq_cyc = np.array(df['"Model Root"/"Trq"'])
+    s_cyc = np.array(df["CYC_S"])
+    ds_cyc = np.array(df["CYC_DS"])
+    w1_cyc = np.array(df["CYC_W1"]) * 100
+    w2_cyc = np.array(df["CYC_W2"]) * 100
+    trq_cyc = np.array(df["CYC_τ"])
 
     t = np.linspace(0, Tend, Nrk + 1)
 
     # plot setting
-    fig = plt.figure(figsize=(8, 12))
-    gs = GridSpec(nrows=5, ncols=1)
+    fig = plt.figure(figsize=(12, 5))
+    gs = GridSpec(nrows=2, ncols=2)
 
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["mathtext.default"] = "default"
@@ -52,14 +49,13 @@ if __name__ == "__main__":
 
     for i, (exp, sim, cyc, name, yx, axis) in enumerate(
         zip(
-            [s_exp, ds_exp, w1_exp, w2_exp, trq_exp],
-            [s_sim, ds_sim, w1_sim, w2_sim, trq_sim],
-            [s_cyc, ds_cyc, w1_cyc, w2_cyc, trq_cyc],
-            ["s", "ds", "w1", "w2", "trq"],
-            [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]],
+            [s_exp, w1_exp, w2_exp, trq_exp],
+            [s_sim, w1_sim, w2_sim, trq_sim],
+            [s_cyc, w1_cyc, w2_cyc, trq_cyc],
+            ["s", "w1", "w2", "trq"],
+            [[0, 0], [1, 0], [1, 1], [0, 1]],
             [
                 r"$\theta \rm{[rad]}$",
-                r"$\dot{\theta} \rm{[rad / s]}$",
                 r"$w_1(l) \rm{[cm]}$",
                 r"$w_2(l) \rm{[cm]}$",
                 r"$\tau \rm{[Nm]}$",
@@ -84,7 +80,7 @@ if __name__ == "__main__":
 
         ax.set_ylabel(axis)
 
-        if name == "trq":
+        if name == "w1" or name == "w2":
             ax.set_xlabel(r"$t [s]$")
         else:
             ax.tick_params(
@@ -94,6 +90,6 @@ if __name__ == "__main__":
     fig.patch.set_alpha(0)
     plt.tight_layout()
 
-    savedir = "data/plot/exp/10_135/"
+    savedir = "data/plot/exp/yosi/"
     os.makedirs(savedir, exist_ok=True)
     fig.savefig(f"{savedir}plot.png")

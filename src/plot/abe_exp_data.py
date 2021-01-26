@@ -39,12 +39,13 @@ if __name__ == "__main__":
     t = np.linspace(0, Tend, Nrk + 1)
 
     # plot setting
-    fig = plt.figure(figsize=(8, 12))
+    fig = plt.figure(figsize=(6, 9))
     gs = GridSpec(nrows=5, ncols=1)
 
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["mathtext.default"] = "default"
     plt.rcParams["font.size"] = 15
+    plt.rcParams["axes.grid"] = True
 
     for i, (exp, sim, cyc, name, yx, axis) in enumerate(
         zip(
@@ -69,14 +70,16 @@ if __name__ == "__main__":
 
         # plot
         if name == "s":
-            ax.plot(t[:1001], cyc[:1001], label="Cycloidal Motion")
-            ax.plot(t[:1001], exp[:1001], label="Experiment")
-            ax.plot(t[:1001], sim[:1001], label="Simulation")
+            ax.plot(t[:1001], exp[:1001], label="Experiment", color="black")
+            ax.plot(t[:1001], sim[:1001], label="Simulation", color="black", linestyle="dashed")
+            ax.plot(
+                t[:1001], cyc[:1001], label="Cycloidal Motion", color="black", linestyle="dashdot"
+            )
             plt.legend(loc="lower right")
         else:
-            ax.plot(t[:1001], cyc[:1001])
-            ax.plot(t[:1001], exp[:1001])
-            ax.plot(t[:1001], sim[:1001])
+            ax.plot(t[:1001], exp[:1001], color="black")
+            ax.plot(t[:1001], sim[:1001], color="black", linestyle="dashed")
+            ax.plot(t[:1001], cyc[:1001], color="black", linestyle="dashdot")
 
         ax.set_ylabel(axis)
 

@@ -178,14 +178,13 @@ if __name__ == "__main__":
     t = np.linspace(0, Tend, Nrk + 1)
 
     # plot setting
-    savedir = "data/plot/p_ident_exp/"
-
     fig = plt.figure(figsize=(8, 12))
     gs = GridSpec(nrows=3, ncols=1)
 
     plt.rcParams["mathtext.fontset"] = "stix"
     plt.rcParams["mathtext.default"] = "default"
     plt.rcParams["font.size"] = 15
+    plt.rcParams["axes.grid"] = True
 
     for i, (exp, sim, name, axis) in enumerate(
         zip(
@@ -211,9 +210,16 @@ if __name__ == "__main__":
             ax.plot(t[:1001], sim[:1001])
 
         ax.set_ylabel(axis)
-        ax.set_xlabel(r"$t [s]$")
+
+        if name == "trq":
+            ax.set_xlabel(r"$t [s]$")
+        else:
+            ax.tick_params(
+                labelbottom=False, labelleft=True, labelright=False, labeltop=False,
+            )
 
     fig.patch.set_alpha(0)
     plt.tight_layout()
 
+    savedir = "data/plot/p_ident_exp/"
     fig.savefig(f"{savedir}plot.png")
